@@ -1,18 +1,24 @@
-Project Overview
+# MyFriendCalendar.io
+## Project Overview
 This repository contains two main parts:
- backend/ – Python-based backend, 
- and frontend/ – web frontend application. Both are stored in separate folders to keep the project modular and maintainable.
+```
+backend/ – Python-based backend, 
+frontend/ – web frontend application. Both are stored in separate folders to keep the project modular and maintainable.
+```
+## Branch Naming Convention
+Branches must follow this pattern: 
 
-Branch Naming Convention
-Branches must follow this pattern: <task-number>-<short-description>
-Example: 123-add-user-auth
+`<task-number>-<short-description>`
 
-Coding Standards
+Example: 
+`123-add-user-auth`
+
+## Coding Standards
 The backend must follow standard Python coding conventions, including PEP 8 styling, clear and maintainable code structure, use of type hints where appropriate, and meaningful commit messages.
 
-Code Review Process
+## Code Review Process
 The current Product Manager must be assigned as the reviewer.
-When the merge request is ready, add the label: ready_to_review
+When the merge request is ready, add the label: `ready_to_review`
 
-Running the Project
+## Running the Project
 Instructions for running the backend and frontend are located in their respective folders.
