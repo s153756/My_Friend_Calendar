@@ -8,7 +8,7 @@ frontend/ – web frontend application. Both are stored in separate folders to k
 ## Branch Naming Convention
 Branches must follow this pattern: 
 
-`<task-number>-<short-description>`
+`<task-number>-<very-short-description>`
 
 Example: 
 `123-add-user-auth`
