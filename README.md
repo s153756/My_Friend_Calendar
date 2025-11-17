@@ -1,5 +1,7 @@
 Project Overview
-This repository contains two main parts: backend/ – Python-based backend, and frontend/ – web frontend application. Both are stored in separate folders to keep the project modular and maintainable.
+This repository contains two main parts:
+ backend/ – Python-based backend, 
+ and frontend/ – web frontend application. Both are stored in separate folders to keep the project modular and maintainable.
 
 Branch Naming Convention
 Branches must follow this pattern: <task-number>-<short-description>
