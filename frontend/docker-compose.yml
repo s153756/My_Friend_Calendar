@@ -1,0 +1,10 @@
+services:
+  frontend:
+    image: myfriendcalendar
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+    container_name: myfriendcalendar-frontend
+
