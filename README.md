@@ -22,3 +22,9 @@ When the merge request is ready, add the label: `ready_to_review`
 
 ## Running the Project
 Instructions for running the backend and frontend are located in their respective folders.
+
+## to build front write:
+docker build -t myfriendcalendar .
+
+## to run front write:
+docker run -d -p 3000:3000 -v $(pwd):/app myfriendcalendar 
