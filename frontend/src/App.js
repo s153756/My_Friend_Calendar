@@ -1,22 +1,30 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState } from 'react';
 
 function App() {
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    console.log("Attempting to fetch from backend...");
+
+    fetch('http://localhost:5000/api/test-db')
+      .then(res => res.json())
+      .then(data => {
+        console.log("Data received:", data);
+        setMessage(data.message);
+      })
+      .catch(err => {
+        console.error("Error fetching:", err);
+        setMessage("Error connecting to backend");
+      });
+  }, []);
+
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
+        <h1>Docker Test</h1>
         <p>
-          Edit <code>src/App.js</code> and save to reload.
+          Backend says: <strong>{message || "Loading..."}</strong>
         </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
       </header>
     </div>
   );
