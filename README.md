@@ -38,7 +38,7 @@ flask run
 
 !!!!!!!!!!!!!
 
-When schema changes, update the models in `backend/app/models/__init__.py`, then run:
+When schema changes (you add column, new table etc.), update the models in `backend/app/models/__init__.py`, then run:
 
 ```
 flask db migrate -m "describe change"
@@ -52,3 +52,13 @@ docker build -t myfriendcalendar .
 
 ## to run front write:
 docker run -d -p 3000:3000 -v $(pwd):/app myfriendcalendar 
+
+## Adding endpoints
+
+- Blueprint per feature in `backend/app/routes/<feature>_routes.py`; business logic in `backend/app/services/<feature>_service.py`.
+- Register blueprints in `create_app()` (see `run.py`): `app.register_blueprint(...)`. API prefix: `/api/<feature>`.
+
+Example:
+- Service: `authenticate_user(email, password)` in `app/services/auth_service.py`.
+- Route: `auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')`; `@auth_bp.route('/login', methods=['POST'])`.
+- Register: `from app.routes.auth_routes import auth_bp`; `app.register_blueprint(auth_bp)`.
