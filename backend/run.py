@@ -18,6 +18,9 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
 
+    from app.routes.auth_routes import auth_bp
+    app.register_blueprint(auth_bp)
+
     @app.route("/api/test-db")
     def health():
         try:
@@ -58,37 +61,46 @@ def register_cli_commands(app):
             user_role = Role(name="user")
             db.session.add(user_role)
 
-        demo_user = User.query.filter_by(email="demo@example.com").first()
-        if not demo_user:
-            demo_user = User(
-                email="demo@example.com",
-                password_hash=generate_password_hash("demo123"),
-                password_algorithm="pbkdf2:sha256",
-                is_email_verified=True,
-                is_active=True,
-            )
-            db.session.add(demo_user)
+        users_seed = [
+            {"email": "kacper@example.com", "display_name": "Kacper", "full_name": "Kacper"},
+            {"email": "filip@example.com", "display_name": "Filip", "full_name": "Filip"},
+            {"email": "kuba@example.com", "display_name": "Kuba", "full_name": "Kuba"},
+            {"email": "krystian@example.com", "display_name": "Krystian", "full_name": "Krystian"},
+            {"email": "wiktor@example.com", "display_name": "Wiktor", "full_name": "Wiktor"},
+        ]
+
+        for u in users_seed:
+            existing = User.query.filter_by(email=u["email"]).first()
+            if existing:
+                continue
+
+            new_user = User()
+            new_user.email = u["email"]
+            new_user.password_hash = generate_password_hash("demo123")
+            new_user.password_algorithm = "pbkdf2:sha256"
+            new_user.is_email_verified = True
+            new_user.is_active = True
+            db.session.add(new_user)
             db.session.flush()
 
-            profile = UserProfile(
-                user_id=demo_user.id,
-                display_name="Demo",
-                full_name="Demo User",
-                timezone="Europe/Warsaw",
-                locale="pl_PL",
-            )
-            settings = UserSettings(
-                user_id=demo_user.id,
-                week_starts_on=1,
-                default_view="month",
-                time_format="24h",
-                notifications_email=True,
-                notifications_push=True,
-            )
+            profile = UserProfile()
+            profile.user_id = new_user.id
+            profile.display_name = u["display_name"]
+            profile.full_name = u["full_name"]
+            profile.timezone = "Europe/Warsaw"
+            profile.locale = "pl_PL"
+            settings = UserSettings()
+            settings.user_id = new_user.id
+            settings.week_starts_on = 1
+            settings.default_view = "month"
+            settings.time_format = "24h"
+            settings.notifications_email = True
+            settings.notifications_push = True
             db.session.add(profile)
             db.session.add(settings)
 
-            admin_role.users.append(demo_user)
+            # wszyscy mają najwyższą rolę admin
+            admin_role.users.append(new_user)
 
         db.session.commit()
 
