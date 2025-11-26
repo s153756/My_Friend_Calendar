@@ -23,6 +23,30 @@ When the merge request is ready, add the label: `ready_to_review`
 ## Running the Project
 Instructions for running the backend and frontend are located in their respective folders.
 
+### Backend quickstart (Flask + Postgres)
+
+```
+cd backend
+.\.venv\Scripts\activate
+pip install -r requirements.txt
+$env:FLASK_APP="run.py"
+$env:DATABASE_URL="postgresql://postgres:password@localhost:5432/testdb"
+flask db upgrade
+flask seed-demo
+flask run
+```
+
+!!!!!!!!!!!!!
+
+When schema changes, update the models in `backend/app/models/__init__.py`, then run:
+
+```
+flask db migrate -m "describe change"
+flask db upgrade
+```
+
+To reset the Dockerised Postgres instance (so migrations can recreate everything from scratch), run `docker compose down -v` before `docker compose up --build`.
+
 ## to build front write:
 docker build -t myfriendcalendar .
 
