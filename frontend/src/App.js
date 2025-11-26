@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import LoginForm from './components/LoginForm';
 
 function App() {
+  const [user, setUser] = useState(null);
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -18,6 +20,14 @@ function App() {
       });
   }, []);
 
+  const handleLoginSuccess = (userData) => {
+    setUser(userData);
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+  };
+
   return (
     <div className="App">
       <header className="App-header">
@@ -26,6 +36,18 @@ function App() {
           Backend says: <strong>{message || "Loading..."}</strong>
         </p>
       </header>
+      <main className="App-main">
+        {user ? (
+          <div className="user-dashboard">
+            <h2>Welcome, {user.email}!</h2>
+            <p>User ID: {user.id}</p>
+            <p>Email verified: {user.is_email_verified ? 'Yes' : 'No'}</p>
+            <button onClick={handleLogout}>Logout</button>
+          </div>
+        ) : (
+          <LoginForm onLoginSuccess={handleLoginSuccess} />
+        )}
+      </main>
     </div>
   );
 }
