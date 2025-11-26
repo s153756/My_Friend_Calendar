@@ -6,11 +6,11 @@ function App() {
   useEffect(() => {
     console.log("Attempting to fetch from backend...");
 
-    fetch('http://localhost:5000/api/test-db')
+    fetch('http://localhost:5000/api/users/first')
       .then(res => res.json())
       .then(data => {
         console.log("Data received:", data);
-        setMessage(data.message);
+        setMessage(data.email || data.message);
       })
       .catch(err => {
         console.error("Error fetching:", err);
