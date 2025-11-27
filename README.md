@@ -23,36 +23,6 @@ When the merge request is ready, add the label: `ready_to_review`
 ## Running the Project
 Instructions for running the backend and frontend are located in their respective folders.
 
-### Backend quickstart (Flask + Postgres)
-
-```
-cd backend
-.\.venv\Scripts\activate
-pip install -r requirements.txt
-$env:FLASK_APP="run.py"
-$env:DATABASE_URL="postgresql://postgres:password@localhost:5432/testdb"
-flask db upgrade
-flask seed-demo
-flask run
-```
-
-!!!!!!!!!!!!!
-
-When schema changes (you add column, new table etc.), update the models in `backend/app/models/__init__.py`, then run:
-
-```
-flask db migrate -m "describe change"
-flask db upgrade
-```
-
-To reset the Dockerised Postgres instance (so migrations can recreate everything from scratch), run `docker compose down -v` before `docker compose up --build`.
-
-## to build front write:
-docker build -t myfriendcalendar .
-
-## to run front write:
-docker run -d -p 3000:3000 -v $(pwd):/app myfriendcalendar 
-
 ## Adding endpoints
 
 - Blueprint per feature in `backend/app/routes/<feature>_routes.py`; business logic in `backend/app/services/<feature>_service.py`.
@@ -62,3 +32,12 @@ Example:
 - Service: `authenticate_user(email, password)` in `app/services/auth_service.py`.
 - Route: `auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')`; `@auth_bp.route('/login', methods=['POST'])`.
 - Register: `from app.routes.auth_routes import auth_bp`; `app.register_blueprint(auth_bp)`.
+
+## Building project
+
+to build project use:
+docker compose up --build -d
+
+to remove created containers run
+
+docker-compose down -v
