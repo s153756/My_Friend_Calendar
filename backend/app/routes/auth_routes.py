@@ -3,7 +3,8 @@ from flask import Blueprint, request, jsonify
 from app.services.auth_service import authenticate_user
 from flask_jwt_extended import (
     JWTManager, create_access_token, create_refresh_token,
-    jwt_required, get_jwt_identity, get_jwt
+    jwt_required, get_jwt_identity, get_jwt,
+    set_access_cookies, set_refresh_cookies
 )
 
 
@@ -26,20 +27,29 @@ def login():
     access_token = create_access_token(identity=user.id)
     refresh_token = create_refresh_token(identity=user.id)
 
-    return jsonify({
-        'access_token': access_token,
-        'refresh_token': refresh_token,
+    response = jsonify({
         'user': {
             "id": str(user.id),
             "email": user.email,
             "is_email_verified": bool(getattr(user, "is_email_verified", False))
         }
-    }), 200
+    })
+
+    response.status_code = 200
+
+    set_access_cookies(response, access_token)
+    set_refresh_cookies(response, refresh_token)
+
+    return response
 
 
-@app.route('/api/auth/refresh', methods=['POST'])
+
+@auth_bp.route('/refresh', methods=['POST'])
 @jwt_required(refresh=True)
 def refresh():
     current_user_id = get_jwt_identity()
+
     new_access_token = create_access_token(identity=current_user_id)
+    set_access_cookies(response, access_token)
+
     return jsonify({'access_token': new_access_token}), 200
