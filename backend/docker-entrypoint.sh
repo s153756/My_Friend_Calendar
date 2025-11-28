@@ -10,7 +10,7 @@ until nc -z $DB_HOST $DB_PORT; do
   sleep 1
 done
 
-echo "PostgreSQL is ready."
+echo "PostgreSQL is ready"
 
 export FLASK_APP="run.py"
 
