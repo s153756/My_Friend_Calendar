@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { useAuthStore } from '../useAuthStore';
 import Cookies from 'js-cookie';
+import apiClient from './apiClient';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
@@ -60,3 +61,11 @@ export const handleTokenRefresh = async () => {
     throw error;
   }
 };
+
+export async function logoutUser() {
+  try {
+    await apiClient.get('/api/auth/logout');
+  } catch (error) {
+    console.error('Logout request failed:', error);
+  }
+}
