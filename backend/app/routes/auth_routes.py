@@ -50,6 +50,11 @@ def refresh():
     current_user_id = get_jwt_identity()
 
     new_access_token = create_access_token(identity=current_user_id)
-    set_access_cookies(response, access_token)
+    new_refresh_token = create_refresh_token(identity=current_user_id)
 
-    return jsonify({'access_token': new_access_token}), 200
+    response = make_response(jsonify(msg="Tokens have been seccessfully refreshed"), 200)
+
+    set_access_cookies(response, new_access_token)
+    set_refresh_cookies(response, new_refresh_token)
+
+    return response
