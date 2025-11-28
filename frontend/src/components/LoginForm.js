@@ -14,7 +14,7 @@ function LoginForm({ onLoginSuccess }) {
     try {
       const { loginUser } = await import('../api/auth');
       const data = await loginUser(email, password);
-      onLoginSuccess(data.user);
+      onLoginSuccess(data);
     } catch (err) {
       setError(err.message || 'Login failed');
     } finally {
