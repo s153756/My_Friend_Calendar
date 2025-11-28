@@ -28,6 +28,7 @@ def login():
     refresh_token = create_refresh_token(identity=user.id)
 
     response = jsonify({
+        'access_token': access_token,
         'user': {
             "id": str(user.id),
             "email": user.email,
@@ -37,7 +38,6 @@ def login():
 
     response.status_code = 200
 
-    set_access_cookies(response, access_token)
     set_refresh_cookies(response, refresh_token)
 
     return response
@@ -52,9 +52,13 @@ def refresh():
     new_access_token = create_access_token(identity=current_user_id)
     new_refresh_token = create_refresh_token(identity=current_user_id)
 
-    response = make_response(jsonify(msg="Tokens have been seccessfully refreshed"), 200)
+    response_data = {
+        "msg": "Tokens have been successfully refreshed.",
+        "access_token": new_access_token,
+    }
 
-    set_access_cookies(response, new_access_token)
-    set_refresh_cookies(response, new_refresh_token)
+    response = make_response(jsonify(response_data), 200)
+
+    set_refresh_cookies = (response, new_refresh_token)
 
     return response
