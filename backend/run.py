@@ -24,6 +24,7 @@ def create_app():
     app.config['JWT_COOKIE_HTTPONLY'] = True
     app.config['JWT_COOKIE_SAMESITE'] = 'Lax'
     app.config['JWT_REFRESH_COOKIE_NAME'] = 'refresh_token_cookie'
+    app.config['JWT_COOKIE_SECURE'] = False
 
     jwt = JWTManager(app)
 

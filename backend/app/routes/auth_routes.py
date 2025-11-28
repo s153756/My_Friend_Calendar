@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, make_response
 
 from app.services.auth_service import authenticate_user
 from flask_jwt_extended import (
@@ -59,6 +59,22 @@ def refresh():
 
     response = make_response(jsonify(response_data), 200)
 
-    set_refresh_cookies = (response, new_refresh_token)
+    set_refresh_cookies(response, new_refresh_token)
 
     return response
+
+@auth_bp.route("/protected", methods=["GET"])
+@jwt_required()
+def protected():
+    """
+    A protected route that requires a valid access token.
+    """
+    # get_jwt_identity() fetches the user_id stored in the JWT payload
+    current_user_id = get_jwt_identity()
+
+    return jsonify({
+        "message": "Access granted!",
+        "user_id": current_user_id,
+        "token_type": "access",
+        "data": "This is sensitive data accessible only with a valid access token."
+    }), 200
