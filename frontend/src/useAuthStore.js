@@ -5,4 +5,8 @@ export const useAuthStore = create((set) => ({
   user: null,
 
   setLogin: (accessToken, user) => set({ accessToken, user }),
+
+  setAccessToken: (newAccessToken) => set({
+    accessToken: newAccessToken
+  }),
 }));
