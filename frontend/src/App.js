@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import LoginForm from './components/LoginForm';
 import { useAuthStore } from './useAuthStore'; 
+import TestCalendar from './components/TestCalendar';
 
 function App() {
   const { user, setLogin, logout, statusMessage, statusType } = useAuthStore();
@@ -55,16 +56,16 @@ function App() {
         </div>
       )}
       <main className="App-main">
-        {user ? (
+        <LoginForm onLoginSuccess={handleLoginSuccess} />
+        {user && (
           <div className="user-dashboard">
             <h2>Welcome, {user.email}!</h2>
             <p>User ID: {user.id}</p>
             <p>Email verified: {user.is_email_verified ? 'Yes' : 'No'}</p>
            <button onClick={handleLogout}>Logout</button>
           </div>
-        ) : (
-          <LoginForm onLoginSuccess={handleLoginSuccess} />
         )}
+        <TestCalendar />
       </main>
     </div>
   );
