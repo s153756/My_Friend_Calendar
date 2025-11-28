@@ -1,31 +1,41 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import LoginForm from './components/LoginForm';
+import { useAuthStore } from './useAuthStore';
 
 function App() {
-  const [user, setUser] = useState(null);
+  const { user, setLogin, logout } = useAuthStore();
   const [message, setMessage] = useState('');
 
   useEffect(() => {
     console.log("Attempting to fetch from backend...");
 
-    fetch('http://localhost:5000/api/users/first')
-      .then(res => res.json())
-      .then(data => {
+    axios.get('http://localhost:5000/api/users/first')
+      .then(response => {
+        const data = response.data;
         console.log("Data received:", data);
         setMessage(data.email || data.message);
       })
-      .catch(err => {
-        console.error("Error fetching:", err);
-        setMessage("Error connecting to backend");
+      .catch(error => {
+        console.error("Error fetching:", error);
+
+        if (error.response) {
+            setMessage(`Backend Error: ${error.response.status}`);
+        } else {
+            setMessage("Error connecting to backend");
+        }
       });
   }, []);
 
-  const handleLoginSuccess = (userData) => {
-    setUser(userData);
+  const handleLoginSuccess = (data) => {
+    const { access_token, user } = data;
+
+    setLogin(access_token, user);
+
+    console.log("Login successful. Token and user stored in Zustand.");
   };
 
   const handleLogout = () => {
-    setUser(null);
   };
 
   return (
