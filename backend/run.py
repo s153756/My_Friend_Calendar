@@ -112,7 +112,6 @@ def register_cli_commands(app):
             db.session.add(profile)
             db.session.add(settings)
 
-            # wszyscy mają najwyższą rolę admin
             admin_role.users.append(new_user)
 
         db.session.commit()

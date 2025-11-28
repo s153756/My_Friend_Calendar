@@ -4,7 +4,8 @@ from app.services.auth_service import authenticate_user
 from flask_jwt_extended import (
     JWTManager, create_access_token, create_refresh_token,
     jwt_required, get_jwt_identity, get_jwt,
-    set_access_cookies, set_refresh_cookies
+    set_access_cookies, set_refresh_cookies,
+    unset_jwt_cookies
 )
 
 
@@ -43,6 +44,16 @@ def login():
     return response
 
 
+@auth_bp.route("/logout", methods=["POST"])
+@jwt_required(optional=True)
+def logout():
+
+    response = jsonify({"message": "Logged out successfully"})
+
+    unset_jwt_cookies(response)
+
+    return response, 200
+
 
 @auth_bp.route('/refresh', methods=['POST'])
 @jwt_required(refresh=True)
@@ -66,10 +77,7 @@ def refresh():
 @auth_bp.route("/protected", methods=["GET"])
 @jwt_required()
 def protected():
-    """
-    A protected route that requires a valid access token.
-    """
-    # get_jwt_identity() fetches the user_id stored in the JWT payload
+
     current_user_id = get_jwt_identity()
 
     return jsonify({
