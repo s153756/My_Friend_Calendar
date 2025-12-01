@@ -1,13 +1,18 @@
-import React, { useState } from 'react';
+import { FormEvent, useState } from 'react';
+import type { LoginResponse } from '../types/auth';
 
-function LoginForm({ onLoginSuccess }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+interface LoginFormProps {
+  onLoginSuccess: (data: LoginResponse) => void;
+}
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [error, setError] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setError('');
     setLoading(true);
 
@@ -16,7 +21,8 @@ function LoginForm({ onLoginSuccess }) {
       const data = await loginUser(email, password);
       onLoginSuccess(data);
     } catch (err) {
-      setError(err.message || 'Login failed');
+      const message = err instanceof Error ? err.message : 'Login failed';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -32,7 +38,7 @@ function LoginForm({ onLoginSuccess }) {
             id="email"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(event) => setEmail(event.target.value)}
             required
             disabled={loading}
           />
@@ -43,7 +49,7 @@ function LoginForm({ onLoginSuccess }) {
             id="password"
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(event) => setPassword(event.target.value)}
             required
             disabled={loading}
           />
@@ -55,6 +61,6 @@ function LoginForm({ onLoginSuccess }) {
       </form>
     </div>
   );
-}
+};
 
 export default LoginForm;
