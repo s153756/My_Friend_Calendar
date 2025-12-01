@@ -1,12 +1,18 @@
-import React, { useState } from 'react';
-import { Calendar, momentLocalizer } from 'react-big-calendar';
+import { useState } from 'react';
+import { Calendar, momentLocalizer, type Event as RBCEvent } from 'react-big-calendar';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
+
+interface CalendarEvent extends RBCEvent {
+  title: string;
+  start: Date;
+  end: Date;
+}
 
 const localizer = momentLocalizer(moment);
 
 const TestCalendar = () => {
-  const [events, setEvents] = useState([
+  const [events] = useState<CalendarEvent[]>([
     {
       title: 'Spotkanie testowe',
       start: new Date(),
