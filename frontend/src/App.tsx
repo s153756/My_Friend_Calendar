@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import type { AxiosError } from 'axios';
-import LoginForm from './components/LoginForm';
-import TestCalendar from './components/TestCalendar';
+import MainCalendar from './components/MainCalendar';
+import LoginPage from './pages/LoginPage'
 import { useAuthStore } from './useAuthStore';
-import type { LoginResponse } from './types/auth';
+
 import apiClient from './api/apiClient';
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+
 
 function App() {
   const { user, setLogin, logout, statusMessage, statusType } = useAuthStore();
@@ -41,10 +43,7 @@ function App() {
     };
   }, [statusMessage]);
 
-  const handleLoginSuccess = (data: LoginResponse) => {
-    const { access_token, user: loggedInUser } = data;
-    setLogin(access_token, loggedInUser);
-  };
+  
 
   const handleLogout = async () => {
     try {
@@ -58,36 +57,37 @@ function App() {
   };
 
   return (
-    <div className="App">
-      {statusMessage && (
-        <div className={`status-banner ${statusType ?? ''}`}>
-          {statusMessage}
-        </div>
-      )}
+    <BrowserRouter>
+      <nav>
+        <Link to="/">Calendar</Link> |
+        <Link to="/login">Login</Link> |
+        <Link to="/sign_up">Sign up</Link>
+      </nav>
 
-      {message && (
-        <div className="backend-message">
-          {message}
-        </div>
-      )}
-
-      <main className="App-main">
-        {!user ? (
-          <LoginForm onLoginSuccess={handleLoginSuccess} />
-        ) : (
-          <div className="user-dashboard">
-            <h2>Welcome, {user.email}!</h2>
-            <p>User ID: {user.id}</p>
-            <p>Email verified: {user.is_email_verified ? 'Yes' : 'No'}</p>
-            <button type="button" onClick={handleLogout}>
-              Logout
-            </button>
+      <div className="App">
+        {statusMessage && (
+          <div className={`status-banner ${statusType ?? ''}`}>
+            {statusMessage}
           </div>
         )}
 
-        <TestCalendar />
-      </main>
-    </div>
+        {message && (
+          <div className="backend-message">
+            {message}
+          </div>
+        )}
+
+        <main className="App-main">
+          test
+
+        </main>
+      </div>
+      <Routes>
+        <Route path="/" element={<MainCalendar />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/sign_up" element={<LoginPage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

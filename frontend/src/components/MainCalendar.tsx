@@ -11,7 +11,7 @@ interface CalendarEvent extends RBCEvent {
 
 const localizer = momentLocalizer(moment);
 
-const TestCalendar = () => {
+const MainCalendar = () => {
   const [events] = useState<CalendarEvent[]>([
     {
       title: 'Spotkanie testowe',
@@ -22,7 +22,7 @@ const TestCalendar = () => {
 
   return (
     <div style={{ padding: '20px' }}>
-      <h2>Test Calendar</h2>
+      <h2>Calendar</h2>
       <Calendar
         localizer={localizer}
         events={events}
@@ -34,4 +34,4 @@ const TestCalendar = () => {
   );
 };
 
-export default TestCalendar;
+export default MainCalendar;
