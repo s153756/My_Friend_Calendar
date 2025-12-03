@@ -1,4 +1,4 @@
-import { ChangeEvent } from "react";
+import { ChangeEvent, memo } from "react";
 import { View, Views } from "react-big-calendar";
 
 const monthNames = [
@@ -78,7 +78,7 @@ const parseDateInputValue = (value: string): Date | null => {
   return parsed;
 };
 
-export default function CalendarNavigation({
+function CalendarNavigationComponent({
   view,
   date,
   onChangeView,
@@ -176,3 +176,5 @@ export default function CalendarNavigation({
     </nav>
   );
 }
+
+export default memo(CalendarNavigationComponent);
