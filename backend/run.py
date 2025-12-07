@@ -8,7 +8,6 @@ from app.models import User
 from flask_jwt_extended import JWTManager
 from datetime import timedelta
 
-
 def create_app():
     app = Flask(__name__)
 
@@ -32,7 +31,10 @@ def create_app():
     migrate.init_app(app, db)
 
     from app.routes.auth_routes import auth_bp
+    from app.routes.calendar_routes import calendar_bp  
+
     app.register_blueprint(auth_bp)
+    app.register_blueprint(calendar_bp)  
 
     @app.route("/api/test-db")
     def health():
@@ -102,6 +104,7 @@ def register_cli_commands(app):
             profile.full_name = u["full_name"]
             profile.timezone = "Europe/Warsaw"
             profile.locale = "pl_PL"
+
             settings = UserSettings()
             settings.user_id = new_user.id
             settings.week_starts_on = 1
@@ -109,6 +112,7 @@ def register_cli_commands(app):
             settings.time_format = "24h"
             settings.notifications_email = True
             settings.notifications_push = True
+
             db.session.add(profile)
             db.session.add(settings)
 
