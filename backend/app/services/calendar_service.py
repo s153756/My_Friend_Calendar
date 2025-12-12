@@ -1,8 +1,8 @@
-from backend.app.models.event import Event
-from backend.app.extensions import db
+from app.models.event import Event
+from app.extensions import db
 from datetime import datetime
 
-def create_event(data, user_id):
+def create_event(data, owner_id):
     """
     Create a new event for the authenticated user.
     """
@@ -20,8 +20,11 @@ def create_event(data, user_id):
         description=data.get('description'),
         start_time=start_time,
         end_time=end_time,
-        user_id=user_id
+        owner_id=owner_id,
     )
+
+
     db.session.add(new_event)
     db.session.commit()
+
     return new_event

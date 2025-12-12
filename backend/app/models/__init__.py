@@ -2,6 +2,7 @@ from .user import User, UserProfile, UserSettings
 from .role import Role, UserRole
 from .session import UserSession
 from .security import LoginAttempt, PasswordResetToken
+from .event import Event
 
 __all__ = [
 	"User",
@@ -12,4 +13,5 @@ __all__ = [
 	"LoginAttempt",
 	"PasswordResetToken",
 	"UserSettings",
+	"Event"
 ]

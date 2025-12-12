@@ -1,9 +1,19 @@
-from backend.app.extensions import db
+from app.extensions import db
+from sqlalchemy.dialects.postgresql import UUID, CITEXT
+from .associations import event_participants
+import uuid
 
 class Event(db.Model):
+    __tablename__ = 'events'
+
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text, nullable=True)
     start_time = db.Column(db.DateTime, nullable=False)
+    location = db.Column(db.String(255))
     end_time = db.Column(db.DateTime, nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    owner_id = db.Column(UUID(as_uuid=True), db.ForeignKey('users.id'), nullable=False)
+
+    owner = db.relationship('User', back_populates='owned_events')
+    participants = db.relationship('User', secondary=event_participants,
+                                  back_populates='participated_events', lazy='dynamic')
