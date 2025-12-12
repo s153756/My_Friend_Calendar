@@ -17,3 +17,13 @@ class Event(db.Model):
     owner = db.relationship('User', back_populates='owned_events')
     participants = db.relationship('User', secondary=event_participants,
                                   back_populates='participated_events', lazy='dynamic')
+
+
+    def user_has_access(self, user):
+        if self.owner_id == user.id:
+            return True
+
+        if self.participants.filter(User.id == user.id).first() is not None:
+            return True
+
+        return False
