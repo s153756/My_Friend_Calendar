@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { ApiUser } from './types/auth';
 
 type StatusType = 'info' | 'error' | 'success' | null;
@@ -13,18 +14,31 @@ interface AuthState {
   logout: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  accessToken: null,
-  user: null,
-  statusMessage: null,
-  statusType: null,
-  setLogin: (accessToken, user) => set({ accessToken, user }),
-  setAccessToken: (newAccessToken) => set({ accessToken: newAccessToken }),
-  logout: () =>
-    set({
+
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set, get) => ({
       accessToken: null,
       user: null,
-      statusMessage: 'You have been logged out',
-      statusType: 'info',
+      statusMessage: null,
+      statusType: null,
+
+      setLogin: (accessToken, user) => set({ accessToken, user }),
+      setAccessToken: (newAccessToken) => set({ accessToken: newAccessToken }),
+      logout: () =>
+        set({
+          accessToken: null,
+          user: null,
+          statusMessage: 'You have been logged out',
+          statusType: 'info',
+        }),
     }),
-}));
+    {
+      name: 'auth-storage',
+      partialize: (state) => ({
+        accessToken: state.accessToken,
+        user: state.user,
+      }),
+    }
+  )
+);
