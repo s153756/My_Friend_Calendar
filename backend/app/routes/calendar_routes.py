@@ -1,10 +1,12 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from backend.app.services.calendar_service import create_event
+from app.services.calendar_service import create_event
+from app.models.event import Event
+from app.models.user import User
 
 calendar_bp = Blueprint('calendar', __name__, url_prefix='/api/calendar')
 
-@calendar_bp.route('/events', methods=['POST'])
+@calendar_bp.route('/events/create', methods=['POST'])
 @jwt_required()
 def create_new_event():
     """
@@ -24,7 +26,36 @@ def create_new_event():
             "description": event.description,
             "start_time": event.start_time,
             "end_time": event.end_time,
-            "user_id": event.user_id
+            "owner_id": event.owner_id
         }), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@calendar_bp.route('/events/<int:event_id>', methods=['GET'])
+@jwt_required()
+def get_event(event_id):
+
+    current_user_id = get_jwt_identity()
+    current_user = User.query.get_or_404(current_user_id)
+
+    event = Event.query.get_or_404(event_id)
+
+    if not event.user_has_access(current_user):
+        return jsonify({'error': 'Access denied'}), 403
+
+    return jsonify({
+        'id': event.id,
+        'title': event.title,
+        'description': event.description,
+        'start_time': event.start_time.isoformat(),
+        'end_time': event.end_time.isoformat(),
+        'location': event.location,
+        'owner': {
+            'id': event.owner.id,
+            'email': event.owner.email
+        },
+        'participants': [{
+            'id': p.id,
+            'email': p.email
+        } for p in event.participants.all()],
+   }), 200
