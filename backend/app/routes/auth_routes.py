@@ -14,6 +14,32 @@ auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
 @auth_bp.route("/login", methods=["POST"])
 def login():
+    """
+    Authenticate user and return tokens
+    ---
+    tags:
+      - Authentication
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            email:
+              type: string
+              example: user@example.com
+            password:
+              type: string
+              example: password123
+    responses:
+      200:
+        description: Successfully logged in
+      400:
+        description: Email and password required
+      401:
+        description: Invalid credentials
+    """
     data = request.get_json(silent=True) or {}
     email = data.get("email")
     password = data.get("password")
@@ -47,7 +73,15 @@ def login():
 @auth_bp.route("/logout", methods=["POST"])
 @jwt_required(optional=True)
 def logout():
-
+    """
+    Logout user and clear cookies
+    ---
+    tags:
+      - Authentication
+    responses:
+      200:
+        description: Logged out successfully
+    """
     response = jsonify({"message": "Logged out successfully"})
 
     unset_jwt_cookies(response)
@@ -58,6 +92,17 @@ def logout():
 @auth_bp.route('/refresh', methods=['POST'])
 @jwt_required(refresh=True)
 def refresh():
+    """
+    Refresh access and refresh tokens
+    ---
+    tags:
+      - Authentication
+    responses:
+      200:
+        description: Tokens refreshed successfully
+      401:
+        description: Invalid or missing refresh token
+    """
     current_user_id = get_jwt_identity()
 
     new_access_token = create_access_token(identity=current_user_id)
@@ -77,7 +122,19 @@ def refresh():
 @auth_bp.route("/protected", methods=["GET"])
 @jwt_required()
 def protected():
-
+    """
+    Access protected data
+    ---
+    tags:
+      - Testing
+    security:
+      - bearerAuth: []
+    responses:
+      200:
+        description: Access granted
+      401:
+        description: Missing or invalid token
+    """
     current_user_id = get_jwt_identity()
 
     return jsonify({

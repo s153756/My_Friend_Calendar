@@ -7,9 +7,26 @@ from app import models
 from app.models import User
 from flask_jwt_extended import JWTManager
 from datetime import timedelta
+from flasgger import Swagger
 
 def create_app():
     app = Flask(__name__)
+    swagger_config = {
+        "headers": [],
+        "specs": [
+            {
+                "endpoint": 'apispec_1',
+                "route": '/apispec_1.json',
+                "rule_filter": lambda rule: True,
+                "model_filter": lambda tag: True,
+            }
+        ],
+        "static_url_path": "/flasgger_static",
+        "swagger_ui": True,
+        "specs_route": "/apidocs/"
+    }
+    
+    swagger = Swagger(app, config=swagger_config)
 
     CORS(app, supports_credentials=True, resources={r"/api/*": {"origins": "http://localhost:3000"}})
 
@@ -38,6 +55,13 @@ def create_app():
 
     @app.route("/api/test-db")
     def health():
+        """
+        Check database connection
+        ---
+        responses:
+            200:
+                description: database connection
+        """
         try:
             db.session.execute(text("SELECT 1"))
             return jsonify({"status": "ok"})
