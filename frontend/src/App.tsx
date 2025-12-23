@@ -9,6 +9,18 @@ import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import LogoutButton from "./components/LogoutButton";
 import SignUpPage from "./pages/SignUpPage";
 import MainCalendarPage from "./pages/MainCalendarPage";
+import UserProfilePage from "./pages/UserProfilePage";
+import { Navigate, Outlet } from 'react-router-dom';
+
+const ProtectedRoute = () => {
+  const { user } = useAuthStore();
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <Outlet />;
+};
 
 function App() {
   const { user, statusMessage, statusType } = useAuthStore();
@@ -72,6 +84,9 @@ function App() {
         <Route path="/" element={<MainCalendarPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/sign_up" element={<SignUpPage />} />
+        <Route element={<ProtectedRoute />}>
+            <Route path="/user-profile" element={<UserProfilePage />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   );
