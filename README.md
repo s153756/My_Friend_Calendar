@@ -42,6 +42,11 @@ to remove created containers run
 
 docker-compose down -v
 
-
 ## Api documentation
 `http://localhost:5000/apidocs/`
+
+## Running tests locally
+
+### Running backend tests
+
+docker compose exec backend pytest

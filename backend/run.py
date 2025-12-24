@@ -8,7 +8,7 @@ from app.models import User
 from datetime import timedelta
 from flasgger import Swagger
 
-def create_app():
+def create_app(config_overrides=None):
     app = Flask(__name__)
     swagger_config = {
         "headers": [],
@@ -45,6 +45,8 @@ def create_app():
 
     from app.middleware.jwt_callbacks import configure_jwt_callbacks
     configure_jwt_callbacks()
+    if config_overrides:
+        app.config.update(config_overrides)
 
     db.init_app(app)
     migrate.init_app(app, db)
