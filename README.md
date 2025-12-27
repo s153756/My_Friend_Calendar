@@ -41,3 +41,7 @@ docker compose up --build -d
 to remove created containers run
 
 docker-compose down -v
+
+
+## Api documentation
+`http://localhost:5000/apidocs/`

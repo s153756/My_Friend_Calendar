@@ -10,7 +10,46 @@ calendar_bp = Blueprint('calendar', __name__, url_prefix='/api/calendar')
 @jwt_required()
 def create_new_event():
     """
-    Endpoint to create a new event. Requires authentication.
+    Create a new calendar event
+    ---
+    tags:
+      - Calendar
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - title
+            - start_time
+            - end_time
+          properties:
+            title:
+              type: string
+              example: Meeting with Team
+            description:
+              type: string
+              example: Project synchronization
+            start_time:
+              type: string
+              format: date-time
+              example: "2023-12-24T10:00:00"
+            end_time:
+              type: string
+              format: date-time
+              example: "2023-12-24T11:30:00"
+    responses:
+      201:
+        description: Event created successfully
+      400:
+        description: Missing required fields
+      401:
+        description: Authentication required
+      500:
+        description: Server error
     """
     user_id = get_jwt_identity()
     data = request.get_json()
@@ -34,7 +73,29 @@ def create_new_event():
 @calendar_bp.route('/events/<int:event_id>', methods=['GET'])
 @jwt_required()
 def get_event(event_id):
-
+    """
+    Get event details by ID
+    ---
+    tags:
+      - Calendar
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: event_id
+        in: path
+        type: integer
+        required: true
+        description: Unique ID of the event
+    responses:
+      200:
+        description: Event details retrieved
+      403:
+        description: Access denied (user is not owner or participant)
+      404:
+        description: Event not found
+      401:
+        description: Authentication required
+    """
     current_user_id = get_jwt_identity()
     current_user = User.query.get_or_404(current_user_id)
 

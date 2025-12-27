@@ -1,11 +1,13 @@
 from typing import Optional
-
+import re
 from werkzeug.security import check_password_hash
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 
+from werkzeug.security import generate_password_hash
 from app.extensions import db
-from app.models import User
+from app.models import User, UserProfile, UserSettings
+from datetime import datetime, timezone
 
 _password_hasher = PasswordHasher()
 
@@ -58,3 +60,78 @@ def authenticate_user(email: str, password: str) -> Optional[User]:
         db.session.rollback()
 
     return user
+
+MINIMAL_PASSWORD_LENGTH = 8
+MAXIMAL_PASSWORD_LENGTH = 64
+PASSWORD_ERRORS_DETAILS = {
+    'too_short_error': f"Password must be at least {MINIMAL_PASSWORD_LENGTH} characters long.",
+    'too_long_error': f"Password cannot exceed {MAXIMAL_PASSWORD_LENGTH} characters.",
+    'digit_error': "Password must contain at least one digit.",
+    'uppercase_error': "Password must contain at least one uppercase letter.",
+    'lowercase_error': "Password must contain at least one lowercase letter.",
+    'symbol_error': "Password must contain at least one special character (e.g., !, @, #, $, %).",
+}
+
+def validate_password(password):
+    errors = {
+        'too_short_error': len(password) < MINIMAL_PASSWORD_LENGTH,
+        'too_long_error': len(password) > MAXIMAL_PASSWORD_LENGTH,
+        'digit_error': re.search(r"\d", password) is None,
+        'uppercase_error': re.search(r"[A-Z]", password) is None,
+        'lowercase_error': re.search(r"[a-z]", password) is None,
+        'symbol_error': re.search(r"[@!#$%&'()*+,-./[\\\]^_`{|}~" + r'"]', password) is None,
+    }
+    active_errors_messages = [
+        PASSWORD_ERRORS_DETAILS[key] for key, has_error in errors.items() if has_error
+    ]
+
+    return {
+        'password_ok': not any(errors.values()),
+        'errors': errors,  
+        'messages': active_errors_messages  
+    }
+
+def create_user(data):
+    """
+    Create a new user.
+    """
+    existing_user = User.query.filter_by(email=data["email"]).first()
+    if existing_user:
+        return None, ["User with this email already exists"]
+    
+    try:
+        new_user = User()
+        email = data.get("email", "").lower().strip()
+        new_user.email = email
+        new_user.password_hash = generate_password_hash(data['password'])
+        new_user.password_algorithm = "pbkdf2:sha256"
+        new_user.is_email_verified = False
+        new_user.is_active = True
+        new_user.created_at = datetime.now(timezone.utc)
+        db.session.add(new_user)
+        db.session.flush()
+
+        profile = UserProfile()
+        profile.user_id = new_user.id
+        profile.display_name = data["display_name"]
+        profile.full_name = data["full_name"]
+        profile.timezone = "Europe/Warsaw"
+        profile.locale = "pl_PL"
+
+        settings = UserSettings()
+        settings.user_id = new_user.id
+        settings.week_starts_on = 1
+        settings.default_view = "month"
+        settings.time_format = "24h"
+        settings.notifications_email = True
+        settings.notifications_push = True
+
+        db.session.add(profile)
+        db.session.add(settings)
+        db.session.commit()
+
+        return new_user, []
+
+    except Exception as e:
+        db.session.rollback()  
+        return None, [str(e)]
