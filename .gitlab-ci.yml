@@ -11,7 +11,7 @@ tests.compose:
     - docker compose version
   script:
     - docker compose -f docker-compose.yml -f docker-compose.test.yml build --no-cache
-    - docker compose -f docker-compose.yml -f docker-compose.test.yml up -d db backend --wait
+    - docker compose -f docker-compose.yml -f docker-compose.test.yml up -d db --wait
 
     - docker compose -f docker-compose.yml -f docker-compose.test.yml run --name backend_test backend pytest --junitxml=report.xml
     - docker cp backend_test:/app/report.xml ./backend-report.xml
@@ -27,3 +27,12 @@ tests.compose:
       junit:
         - backend-report.xml
         - frontend-junit.xml
+
+ruff.backend:
+  stage: test
+  image: python:3.12.9-slim
+  before_script:
+    - pip install ruff
+  script:
+    - ruff check backend/
+  allow_failure: false

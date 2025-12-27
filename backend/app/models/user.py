@@ -2,7 +2,6 @@ import uuid
 from sqlalchemy import CheckConstraint, Index, text
 from sqlalchemy.dialects.postgresql import UUID, CITEXT
 from app.extensions import db
-from .associations import event_participants
 
 
 class User(db.Model):
@@ -42,8 +41,8 @@ class User(db.Model):
     )
 
     owned_events = db.relationship('Event', back_populates='owner', lazy='dynamic')
-    participated_events = db.relationship('Event', secondary=event_participants,
-                                         back_populates='participants', lazy='dynamic')
+    event_participations = db.relationship("EventParticipant", back_populates="user",
+                                            cascade="all, delete-orphan", lazy="dynamic")
 
 
 class UserProfile(db.Model):

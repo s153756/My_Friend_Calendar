@@ -54,6 +54,6 @@ def user(session):
     new_user.is_active = True
 
     session.add(new_user)
-    session.commit()
-    session.refresh(new_user)  # Refresh to ensure we have the ID
+    session.flush()
+    session.refresh(new_user)
     return new_user

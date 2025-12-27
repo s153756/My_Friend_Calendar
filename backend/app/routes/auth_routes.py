@@ -1,13 +1,14 @@
 from flask import Blueprint, request, jsonify, make_response
-
-from app.services.auth_service import authenticate_user, create_user, validate_password
+import uuid
+from app.services.auth_service import (
+    authenticate_user, refresh_tokens,
+    revoke_session, generate_session_for_user,
+    SessionNotFoundError, SessionRevokedError,
+    create_user, validate_password)
 from flask_jwt_extended import (
-    JWTManager, create_access_token, create_refresh_token,
     jwt_required, get_jwt_identity, get_jwt,
-    set_access_cookies, set_refresh_cookies,
-    unset_jwt_cookies
+    set_refresh_cookies, unset_jwt_cookies
 )
-
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
@@ -59,7 +60,7 @@ def register():
                     "details": [f"Field '{field}' is required."]
                 }
             ), 400
-    
+
     if data.get("password") != data.get("repeated_password"):
         return jsonify(
             {
@@ -133,11 +134,10 @@ def login():
     if not user:
         return jsonify({"error": "invalid_credentials"}), 401
 
-    access_token = create_access_token(identity=user.id)
-    refresh_token = create_refresh_token(identity=user.id)
+    result = generate_session_for_user(user.id, request.user_agent, request.remote_addr)
 
     response = jsonify({
-        'access_token': access_token,
+        'access_token': result['access_token'],
         'user': {
             "id": str(user.id),
             "email": user.email,
@@ -147,7 +147,7 @@ def login():
 
     response.status_code = 200
 
-    set_refresh_cookies(response, refresh_token)
+    set_refresh_cookies(response, result['refresh_token'])
 
     return response
 
@@ -164,10 +164,12 @@ def logout():
       200:
         description: Logged out successfully
     """
+    jti_string = get_jwt()['jti']
+
+    revoke_session(uuid.UUID(jti_string))
+
     response = jsonify({"message": "Logged out successfully"})
-
     unset_jwt_cookies(response)
-
     return response, 200
 
 
@@ -184,22 +186,34 @@ def refresh():
         description: Tokens refreshed successfully
       401:
         description: Invalid or missing refresh token
+      500:
+        description: Token refresh failed
     """
-    current_user_id = get_jwt_identity()
+    try:
+        jti_string = get_jwt()['jti']
+        current_user_id = get_jwt_identity()
 
-    new_access_token = create_access_token(identity=current_user_id)
-    new_refresh_token = create_refresh_token(identity=current_user_id)
+        result = refresh_tokens(
+            jti_string=jti_string,
+            user_id=current_user_id,
+            ip_address=request.remote_addr,
+            user_agent=str(request.user_agent)
+        )
 
-    response_data = {
-        "msg": "Tokens have been successfully refreshed.",
-        "access_token": new_access_token,
-    }
+        response_data = {
+            "msg": "Tokens have been successfully refreshed.",
+            "access_token": result['access_token'],
+        }
+        response = make_response(jsonify(response_data), 200)
+        set_refresh_cookies(response, result['refresh_token'])
+        return response
 
-    response = make_response(jsonify(response_data), 200)
-
-    set_refresh_cookies(response, new_refresh_token)
-
-    return response
+    except SessionNotFoundError:
+        return jsonify({'error': 'Session not found'}), 401
+    except SessionRevokedError:
+        return jsonify({'error': 'Session revoked'}), 401
+    except Exception:
+        return jsonify({'error': 'Token refresh failed'}), 500
 
 # Do testów 
 @auth_bp.route("/protected", methods=["GET"])

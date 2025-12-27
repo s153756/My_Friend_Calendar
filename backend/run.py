@@ -3,7 +3,6 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 from sqlalchemy import text
 from app.extensions import db, migrate, jwt
-from app import models
 from app.models import User
 from datetime import timedelta
 from flasgger import Swagger
@@ -24,8 +23,8 @@ def create_app(config_overrides=None):
         "swagger_ui": True,
         "specs_route": "/apidocs/"
     }
-    
-    swagger = Swagger(app, config=swagger_config)
+
+    Swagger(app, config=swagger_config)
 
     CORS(app, supports_credentials=True, resources={r"/api/*": {"origins": "http://localhost:3000"}})
 
@@ -52,10 +51,10 @@ def create_app(config_overrides=None):
     migrate.init_app(app, db)
 
     from app.routes.auth_routes import auth_bp
-    from app.routes.calendar_routes import calendar_bp  
+    from app.routes.calendar_routes import calendar_bp
 
     app.register_blueprint(auth_bp)
-    app.register_blueprint(calendar_bp)  
+    app.register_blueprint(calendar_bp)
 
     @app.route("/api/test-db")
     def health():

@@ -1,7 +1,7 @@
 from functools import wraps
 from typing import Callable, List, Optional, Union, TYPE_CHECKING
-from flask import g, jsonify, request
-from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity, get_jwt
+from flask import g, jsonify
+from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
 
 if TYPE_CHECKING:
     from app.models import User
