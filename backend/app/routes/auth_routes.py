@@ -201,6 +201,7 @@ def refresh():
 
     return response
 
+# Do testów 
 @auth_bp.route("/protected", methods=["GET"])
 @jwt_required()
 def protected():
@@ -223,5 +224,5 @@ def protected():
         "message": "Access granted!",
         "user_id": current_user_id,
         "token_type": "access",
-        "data": "This is sensitive data accessible only with a valid access token."
+        "data": "test"
     }), 200
