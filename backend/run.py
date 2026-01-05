@@ -2,10 +2,9 @@ import os
 from flask import Flask, jsonify
 from flask_cors import CORS
 from sqlalchemy import text
-from app.extensions import db, migrate
+from app.extensions import db, migrate, jwt
 from app import models
 from app.models import User
-from flask_jwt_extended import JWTManager
 from datetime import timedelta
 from flasgger import Swagger
 
@@ -42,7 +41,10 @@ def create_app():
     app.config['JWT_REFRESH_COOKIE_NAME'] = 'refresh_token_cookie'
     app.config['JWT_COOKIE_SECURE'] = False
 
-    jwt = JWTManager(app)
+    jwt.init_app(app)
+
+    from app.middleware.jwt_callbacks import configure_jwt_callbacks
+    configure_jwt_callbacks()
 
     db.init_app(app)
     migrate.init_app(app, db)
