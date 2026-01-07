@@ -3,6 +3,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.services.calendar_service import create_event
 from app.models.event import Event
 from app.models.user import User
+from app.extensions import db
 
 calendar_bp = Blueprint('calendar', __name__, url_prefix='/api/calendar')
 
@@ -14,8 +15,6 @@ def create_new_event():
     ---
     tags:
       - Calendar
-    security:
-      - bearerAuth: []
     parameters:
       - in: body
         name: body
@@ -78,8 +77,6 @@ def get_event(event_id):
     ---
     tags:
       - Calendar
-    security:
-      - bearerAuth: []
     parameters:
       - name: event_id
         in: path
@@ -120,3 +117,41 @@ def get_event(event_id):
             'email': p.email
         } for p in event.participants.all()],
    }), 200
+
+
+@calendar_bp.route('/events/<int:event_id>', methods=['DELETE'])
+@jwt_required()
+def delete_event(event_id):
+    """
+    Delete an event (Only for owners)
+    ---
+    tags:
+      - Calendar
+    parameters:
+      - name: event_id
+        in: path
+        type: integer
+        required: true
+        description: Unique ID of the event to delete
+    responses:
+      200:
+        description: Event deleted successfully
+      403:
+        description: Access denied (only owner can delete)
+      404:
+        description: Event not found
+    """
+    current_user_id = get_jwt_identity()
+
+    event = Event.query.get_or_404(event_id)
+
+    if str(event.owner_id) != str(current_user_id):
+        return jsonify({'error': 'Only the owner can delete this event'}), 403
+
+    try:
+        db.session.delete(event)
+        db.session.commit()
+        return jsonify({'message': 'Event deleted successfully'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
