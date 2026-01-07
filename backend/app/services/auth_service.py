@@ -6,8 +6,10 @@ from argon2.exceptions import VerifyMismatchError
 
 from werkzeug.security import generate_password_hash
 from app.extensions import db
-from app.models import User, UserProfile, UserSettings
-from datetime import datetime, timezone
+from app.models import User, UserSession, UserProfile, UserSettings
+from datetime import datetime, timedelta, timezone
+import uuid
+from flask_jwt_extended import create_access_token, create_refresh_token, decode_token
 
 _password_hasher = PasswordHasher()
 
@@ -87,8 +89,8 @@ def validate_password(password):
 
     return {
         'password_ok': not any(errors.values()),
-        'errors': errors,  
-        'messages': active_errors_messages  
+        'errors': errors,
+        'messages': active_errors_messages
     }
 
 def create_user(data):
@@ -98,7 +100,7 @@ def create_user(data):
     existing_user = User.query.filter_by(email=data["email"]).first()
     if existing_user:
         return None, ["User with this email already exists"]
-    
+
     try:
         new_user = User()
         email = data.get("email", "").lower().strip()
@@ -133,5 +135,78 @@ def create_user(data):
         return new_user, []
 
     except Exception as e:
-        db.session.rollback()  
+        db.session.rollback()
         return None, [str(e)]
+
+class SessionNotFoundError(Exception):
+    pass
+
+class SessionRevokedError(Exception):
+    pass
+
+def refresh_tokens(self, jti_string, user_id, ip_address, user_agent):
+
+    jti_uuid = uuid.UUID(jti_string)
+    old_session = UserSession.query.get(jti_uuid)
+
+    if not old_session:
+        raise SessionNotFoundError("Session not found")
+
+    if old_session.revoked_at:
+        raise SessionRevokedError("Session already revoked")
+
+    new_access_token = create_access_token(identity=user_id)
+    new_refresh_token = create_refresh_token(identity=user_id)
+    new_jti_string = decode_token(new_refresh_token)['jti']
+
+    old_session.revoked_at = datetime.utcnow()
+
+    new_session = UserSession(
+        id=uuid.UUID(new_jti_string),
+        user_id=user_id,
+        device_name=old_session.device_name,
+        ip_address=ip_address,
+        user_agent=user_agent,
+        expires_at=datetime.utcnow() + timedelta(days=30),
+        last_seen_at=datetime.utcnow()
+    )
+
+    db.session.add(new_session)
+    db.session.commit()
+
+    return {
+        'access_token': new_access_token,
+        'refresh_token': new_refresh_token
+    }
+
+
+def revoke_session(jti_uuid):
+    session = UserSession.query.get(jti_uuid)
+    if session:
+        session.revoked_at = datetime.utcnow()
+        db.session.commit()
+
+
+def generate_session_for_user(user_id, user_agent, remote_addr):
+    access_token = create_access_token(identity=user_id)
+    refresh_token = create_refresh_token(identity=user_id)
+
+    jti_string = decode_token(refresh_token)['jti']
+
+    session = UserSession(
+        id=uuid.UUID(jti_string),
+        user_id=user_id,
+        device_name=str(user_agent),
+        ip_address=remote_addr,
+        user_agent=str(user_agent),
+        expires_at=datetime.utcnow() + timedelta(days=30),
+        last_seen_at=datetime.utcnow()
+    )
+
+    db.session.add(session)
+    db.session.commit()
+
+    return {
+        'access_token': access_token,
+        'refresh_token': refresh_token
+    }

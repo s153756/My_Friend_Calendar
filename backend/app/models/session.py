@@ -9,7 +9,6 @@ class UserSession(db.Model):
 
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = db.Column(UUID(as_uuid=True), db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    refresh_token_hash = db.Column(db.Text, nullable=False)
     device_name = db.Column(db.String(100))
     ip_address = db.Column(INET)
     user_agent = db.Column(db.Text)
@@ -22,5 +21,4 @@ class UserSession(db.Model):
 
     __table_args__ = (
         Index("ix_user_sessions_user_id", "user_id"),
-        Index("ux_user_sessions_refresh_token_hash", "refresh_token_hash", unique=True),
     )

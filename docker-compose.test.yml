@@ -1,0 +1,17 @@
+services:
+  frontend:
+    environment:
+      - REACT_APP_API_URL=http://backend:5000
+      - CI=True
+    command: npm test -- --watchAll=false
+  db:
+    command: ["postgres", "-c", "fsync=off", "-c", "full_page_writes=off"]
+    tmpfs: /var/lib/postgresql
+  backend:
+    command: pytest --cov=. --cov-report=term-missing
+    build:
+      context: ./backend
+      args:
+        INSTALL_DEV: "true"
+    environment:
+      - FLASK_ENV=testing

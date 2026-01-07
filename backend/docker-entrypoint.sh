@@ -14,6 +14,9 @@ echo "PostgreSQL is ready"
 export FLASK_APP="run.py"
 
 flask db upgrade
-flask seed-demo
+
+if [ "$FLASK_ENV" != "testing" ]; then
+    flask seed-demo
+fi
 
 exec "$@"

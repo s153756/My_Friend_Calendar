@@ -2,8 +2,7 @@ from .user import User, UserProfile, UserSettings
 from .role import Role, UserRole
 from .session import UserSession
 from .security import LoginAttempt, PasswordResetToken
-from .event import Event
-from .associations import event_participants
+from .event import Event, EventParticipant
 
 __all__ = [
 	"User",
@@ -15,5 +14,5 @@ __all__ = [
 	"PasswordResetToken",
 	"UserSettings",
 	"Event",
-	"event_participants"
+	"EventParticipant"
 ]
