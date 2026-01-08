@@ -2,7 +2,7 @@ import os
 from flask import Flask, jsonify
 from flask_cors import CORS
 from sqlalchemy import text
-from app.extensions import db, migrate, jwt
+from app.extensions import db, migrate, jwt, mail
 from app.models import User
 from datetime import timedelta
 from flasgger import Swagger
@@ -50,6 +50,7 @@ def create_app(config_overrides=None):
     db.init_app(app)
     migrate.init_app(app, db)
 
+
     from app.routes.auth_routes import auth_bp
     from app.routes.calendar_routes import calendar_bp
 
@@ -82,6 +83,7 @@ def create_app(config_overrides=None):
 
     register_cli_commands(app)
 
+    mail.init_app(app)
     return app
 
 

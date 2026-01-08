@@ -10,6 +10,8 @@ from app.models import User, UserSession, UserProfile, UserSettings, PasswordRes
 from datetime import datetime, timedelta, timezone
 import uuid
 from flask_jwt_extended import create_access_token, create_refresh_token, decode_token
+from flask_mail import Message
+from app.extensions import mail
 
 _password_hasher = PasswordHasher()
 
@@ -254,6 +256,18 @@ def generate_reset_password_token(email, ip_address, user_agent):
         'user_agent': user_agent
     }
 
+def send_reset_password_email(email, reset_token):
+    """
+    Send a password reset email to the user.
+
+    :param email: The email of the user.
+    :param reset_token: The plain text reset token.
+    """
+    subject = "Password Reset Request"
+    body = f"Use the following token to reset your password: {reset_token}"
+
+    msg = Message(subject=subject, recipients=[email], body=body)
+    mail.send(msg)
 
 
 
