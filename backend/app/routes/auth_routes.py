@@ -4,7 +4,7 @@ from app.services.auth_service import (
     authenticate_user, refresh_tokens,
     revoke_session, generate_session_for_user,
     SessionNotFoundError, SessionRevokedError,
-    create_user, validate_password)
+    create_user, validate_password, generate_reset_password_token)
 from flask_jwt_extended import (
     jwt_required, get_jwt_identity, get_jwt,
     set_refresh_cookies, unset_jwt_cookies
@@ -240,3 +240,18 @@ def protected():
         "token_type": "access",
         "data": "test"
     }), 200
+
+@auth_bp.route("/reset-password", methods=["POST"])
+def request_password_reset():
+    data = request.get_json()
+    email = data.get('email')
+
+    if not email:
+        return jsonify({"error": "Email is required"}), 400
+
+    result = generate_reset_password_token(email, request.remote_addr, request.headers.get('User-Agent'))
+
+    if isinstance(result, dict):
+        return jsonify({"message": "Password reset token generated successfully"}), 200
+    else:
+        return jsonify({"error": result}), 400
