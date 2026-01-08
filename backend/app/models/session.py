@@ -9,7 +9,7 @@ class UserSession(db.Model):
 
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = db.Column(UUID(as_uuid=True), db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    device_name = db.Column(db.String(100))
+    device_name = db.Column(db.Text)
     ip_address = db.Column(INET)
     user_agent = db.Column(db.Text)
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.func.now())

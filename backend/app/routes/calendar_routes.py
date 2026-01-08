@@ -115,9 +115,55 @@ def get_event(event_id):
         'participants': [{
             'id': p.id,
             'email': p.email
-        } for p in event.participants.all()],
+        } for p in event.participant_links.all()],
    }), 200
 
+@calendar_bp.route('/events/', methods=['GET'])
+@jwt_required()
+def get_events():
+    """
+    Get all user events
+    ---
+    tags:
+      - Calendar
+    responses:
+      200:
+        description: Events details retrieved
+      403:
+        description: Access denied
+      404:
+        description: User not found
+      401:
+        description: Authentication required
+    """
+    current_user_id = get_jwt_identity()
+    current_user = User.query.get_or_404(current_user_id)
+ 
+    events = Event.query.filter(
+        (Event.owner_id == current_user.id) | 
+        (Event.participant_links.any(user_id=current_user.id))
+    ).all()
+
+    events_data = []
+    for event in events:
+        events_data.append({
+            'id': event.id,
+            'title': event.title,
+            'description': event.description,
+            'start_time': event.start_time.isoformat(),
+            'end_time': event.end_time.isoformat(),
+            'location': event.location,
+            'owner': {
+                'id': event.owner.id,
+                'email': event.owner.email
+            },
+            'participants': [{
+                'id': p.id,
+                'email': p.email
+            } for p in event.participant_links.all()]
+        })
+
+    return jsonify(events_data), 200
 
 @calendar_bp.route('/events/<int:event_id>', methods=['DELETE'])
 @jwt_required()

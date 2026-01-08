@@ -111,10 +111,10 @@ def login():
           properties:
             email:
               type: string
-              example: user@example.com
+              example: kacper@example.com
             password:
               type: string
-              example: password123
+              example: demo123
     responses:
       200:
         description: Successfully logged in
