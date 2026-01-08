@@ -28,6 +28,27 @@ class Event(db.Model):
             first() is not None)
 
 
+    def to_dict(self):
+        links = self.participant_links.all()
+
+        return {
+            'id': self.id,
+            'title': self.title,
+            'description': self.description,
+            'start_time': self.start_time.isoformat() if self.start_time else None,
+            'end_time': self.end_time.isoformat() if self.end_time else None,
+            'location': self.location,
+            'owner': {
+                'id': self.owner.id,
+                'email': self.owner.email
+            } if self.owner else None,
+            'participants': [{
+                'id': link.user.id,
+                'email': link.user.email
+            } for link in links],
+        }
+
+
 class EventParticipant(db.Model):
     __tablename__ = 'event_participants'
 
