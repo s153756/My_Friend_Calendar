@@ -28,6 +28,7 @@ Instructions for running the backend and frontend are located in their respectiv
 - Blueprint per feature in `backend/app/routes/<feature>_routes.py`; business logic in `backend/app/services/<feature>_service.py`.
 - Register blueprints in `create_app()` (see `run.py`): `app.register_blueprint(...)`. API prefix: `/api/<feature>`.
 
+
 Example:
 - Service: `authenticate_user(email, password)` in `app/services/auth_service.py`.
 - Route: `auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')`; `@auth_bp.route('/login', methods=['POST'])`.
