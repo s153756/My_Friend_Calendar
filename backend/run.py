@@ -40,6 +40,16 @@ def create_app(config_overrides=None):
     app.config['JWT_REFRESH_COOKIE_NAME'] = 'refresh_token_cookie'
     app.config['JWT_COOKIE_SECURE'] = False
 
+    # Updated Mail configuration
+    app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+    app.config['MAIL_PORT'] = 587
+    app.config['MAIL_USE_TLS'] = True
+    app.config['MAIL_USE_SSL'] = False
+    app.config['MAIL_USERNAME'] = 'kamilkwiatkowski@gmail.com'
+    app.config['MAIL_PASSWORD'] = 'kamikw123'
+    app.config['MAIL_DEFAULT_SENDER'] = 'kamilkwiatkowski@gmail.com'
+    app.config['TESTING'] = True  # This prevents actual sending
+
     jwt.init_app(app)
 
     from app.middleware.jwt_callbacks import configure_jwt_callbacks
@@ -84,6 +94,7 @@ def create_app(config_overrides=None):
     register_cli_commands(app)
 
     mail.init_app(app)
+    
     return app
 
 
