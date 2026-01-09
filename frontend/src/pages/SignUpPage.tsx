@@ -1,16 +1,8 @@
-import { useAuthStore } from "../useAuthStore";
+import SignUpForm from "../components/SignUpForm";
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
 
 export default function SignUpPage() {
-  const { user } = useAuthStore();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (user) {
-      navigate("/");
-    }
-  }, [user, navigate]);
-
-  return <div>Sign up</div>;
+  return <SignUpForm onSignUpSuccess={() => navigate("/")} />;
 }
