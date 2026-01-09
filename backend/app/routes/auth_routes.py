@@ -4,7 +4,7 @@ from app.services.auth_service import (
     authenticate_user, refresh_tokens,
     revoke_session, generate_session_for_user,
     SessionNotFoundError, SessionRevokedError,
-    create_user, validate_password)
+    create_user, validate_password, validate_email)
 from flask_jwt_extended import (
     jwt_required, get_jwt_identity, get_jwt,
     set_refresh_cookies, unset_jwt_cookies
@@ -75,6 +75,15 @@ def register():
             {
                 "error": "invalid_password",
                 "details": password_validation_results["messages"]
+            }
+        ), 400
+
+    email_validation_results = validate_email(data.get("email"))
+    if not email_validation_results["email_ok"]:
+        return jsonify(
+            {
+                "error": "invalid_email",
+                "details": email_validation_results["messages"]
             }
         ), 400
 
