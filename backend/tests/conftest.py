@@ -5,7 +5,7 @@ from app.extensions import db as _db
 from app.models import User
 from werkzeug.security import generate_password_hash
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='function')
 def app():
     """Create application for testing."""
 

@@ -30,34 +30,68 @@ def create_event(data, owner_id):
     return new_event
 
 def patch_event(event, data):
-
-    allowed_fields = ['title', 'description', 'start_time', 'end_time']
+    allowed_fields = ['title', 'location', 'description', 'start_time', 'end_time']
     updated_any = False
+
+    proposed_start = event.start_time
+    proposed_end = event.end_time
+
+    if 'start_time' in data:
+        value = data['start_time']
+        if isinstance(value, str):
+            try:
+                proposed_start = datetime.fromisoformat(value)
+            except ValueError:
+                raise ValueError("Invalid format for start_time")
+        else:
+            proposed_start = value
+
+    if 'end_time' in data:
+        value = data['end_time']
+        if isinstance(value, str):
+            try:
+                proposed_end = datetime.fromisoformat(value)
+            except ValueError:
+                raise ValueError("Invalid format for end_time")
+        else:
+            proposed_end = value
+
+    if proposed_start and proposed_end:
+        check_start = proposed_start.replace(tzinfo=None) if proposed_start.tzinfo else proposed_start
+        check_end = proposed_end.replace(tzinfo=None) if proposed_end.tzinfo else proposed_end
+
+        if check_end <= check_start:
+            raise ValueError("start_time must be before end_time.")
 
     for field in allowed_fields:
         if field in data:
             value = data[field]
 
-            if field in ['start_time', 'end_time'] and isinstance(value, str):
-                try:
-                    value = datetime.fromisoformat(value)
-                except ValueError:
-                    raise ValueError(f"Invalid format for {field}")
+            if field == 'start_time':
+                value = proposed_start
+            elif field == 'end_time':
+                value = proposed_end
 
-            setattr(event, field, value)
-            updated_any = True
+            if getattr(event, field) != value:
+                setattr(event, field, value)
+                updated_any = True
 
     if 'participant_ids' in data:
         new_ids = set(data['participant_ids'])
 
-        event.participant_links.delete()
+        current_ids = {p.user_id for p in event.participant_links.all()}
 
-        for u_id in new_ids:
-            new_link = EventParticipant(event_id=event.id, user_id=u_id)
-            db.session.add(new_link)
-        updated_any = True
+        if new_ids != current_ids:
+            for link in event.participant_links.all():
+                db.session.delete(link)
+
+            for u_id in new_ids:
+                new_link = EventParticipant(event_id=event.id, user_id=u_id)
+                db.session.add(new_link)
+            updated_any = True
 
     if updated_any:
         db.session.commit()
+
 
     return event, updated_any
