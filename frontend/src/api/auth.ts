@@ -119,3 +119,12 @@ export async function registerUser(
     throw new Error("Registration failed");
   }
 }
+
+export async function changePassword(
+  _currentPassword: string,
+  _newPassword: string,
+  _confirmPassword: string
+): Promise<void> {
+  console.log("changePassword TODO");
+  return Promise.resolve();
+}
