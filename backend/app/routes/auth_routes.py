@@ -4,7 +4,7 @@ from app.services.auth_service import (
     authenticate_user, refresh_tokens,
     revoke_session, generate_session_for_user,
     SessionNotFoundError, SessionRevokedError,
-    create_user, validate_password, generate_reset_password_token,
+    create_user, validate_password, validate_email, generate_reset_password_token,
     send_reset_password_email)
 from flask_jwt_extended import (
     jwt_required, get_jwt_identity, get_jwt,
