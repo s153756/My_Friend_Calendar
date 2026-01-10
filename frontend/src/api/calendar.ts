@@ -1,9 +1,5 @@
-import axios, { type AxiosError } from "axios";
 import {CalendarUserEventListResponse, BackendCalendarResponse} from '../types/calendar'
-import { useAuthStore } from "../useAuthStore";
 import apiClient from "../api/apiClient";
-
-const API_BASE_URL = process.env.REACT_APP_API_URL ?? "http://localhost:5000";
 
 export async function getUserEventsList(): Promise<CalendarUserEventListResponse> {
   try {
