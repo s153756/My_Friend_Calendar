@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { CalendarEvent } from "./types/calendar";
+import {getUserEventsList} from "./api/calendar"
 
 type EventsDictionary = Record<string, CalendarEvent>;
 
@@ -7,9 +8,12 @@ interface CalendarEventState {
   eventsById: EventsDictionary;
   order: string[];
   events: CalendarEvent[];
+  isLoading: boolean;
+  error: string | null;
   addEvent: (event: CalendarEvent) => void;
   updateEvent: (eventId: string, updates: Partial<CalendarEvent>) => void;
   deleteEvent: (eventId: string) => void;
+  fetchEvents: () => void;
 }
 
 const materializeEvents = (
@@ -20,10 +24,12 @@ const materializeEvents = (
     .map((id) => eventsById[id])
     .filter((event): event is CalendarEvent => Boolean(event));
 
-export const useCalendarStore = create<CalendarEventState>((set) => ({
+export const useCalendarStore = create<CalendarEventState>((set, get) => ({
   eventsById: {},
   order: [],
   events: [],
+  isLoading: false,
+  error: null,
   addEvent: (event) =>
     set((state) => {
       const nextEventsById: EventsDictionary = {
@@ -72,6 +78,30 @@ export const useCalendarStore = create<CalendarEventState>((set) => ({
         events: materializeEvents(rest, nextOrder),
       };
     }),
+  fetchEvents: async () => {
+    set({ isLoading: true, error: null });
+
+    try {
+      const data = await getUserEventsList();
+      
+      const nextEventsById: EventsDictionary = {};
+      const nextOrder: string[] = [];
+      data.events.forEach((event) => {
+        nextEventsById[event.id] = event;
+        nextOrder.push(event.id);
+      });
+      set({
+        eventsById: nextEventsById,
+        order: nextOrder,
+        events: materializeEvents(nextEventsById, nextOrder),
+        isLoading: false,
+      });
+    } catch (err: any) {
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
+      set({ error: errorMessage, isLoading: false });
+      console.error("[Store: fetchEvents] Error:", errorMessage);
+    }
+  },
 }));
 
 export const useCalendarEvents = () =>
