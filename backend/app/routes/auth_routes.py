@@ -4,12 +4,15 @@ from app.services.auth_service import (
     authenticate_user, refresh_tokens,
     revoke_session, generate_session_for_user,
     SessionNotFoundError, SessionRevokedError,
-    create_user, validate_password, validate_email, generate_reset_password_token,
-    send_reset_password_email)
+    create_user, validate_password, generate_reset_password_token,
+    send_reset_password_email, reset_password,
+    TokenNotFoundException,TokenExpiredException,TokenAlreadyUsedException,
+    validate_email)
 from flask_jwt_extended import (
     jwt_required, get_jwt_identity, get_jwt,
     set_refresh_cookies, unset_jwt_cookies
 )
+from sqlalchemy.exc import SQLAlchemyError
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
@@ -308,3 +311,69 @@ def request_password_reset():
         return jsonify({"message": "Password reset token sent successfully"}), 200
     else:
         return jsonify({"error": result}), 400
+
+
+@auth_bp.route("/reset-password", methods=["POST"])
+def reset():
+  """
+  Reset user password using token
+  ---
+  tags:
+    - Authentication
+  parameters:
+    - in: body
+      name: body
+      required: true
+      schema:
+        type: object
+        properties:
+          token:
+            type: string
+          password:
+            type: string
+            example: password123
+  responses:
+    200:
+      description: Successfully reset password
+    400:
+      description: Token and password required
+    500:
+      description: Internal server error
+  """
+
+  data = request.get_json()
+
+  token = data.get('token')
+  if not token:
+    return jsonify({"error": "Token is required"}), 400
+
+  password = data.get('password')
+  if not password:
+    return jsonify({'error': "Password is required"}), 400
+
+  password_validation_results = validate_password(data.get("password"))
+  if not password_validation_results["password_ok"]:
+      return jsonify(
+          {
+              "error": "invalid_password",
+              "details": password_validation_results["messages"]
+          }
+      ), 400
+
+  try:
+    user = reset_password(token, password)
+
+    return jsonify({
+      'user': {
+          "id": str(user.id),
+          "email": user.email,
+          "is_email_verified": bool(getattr(user, "is_email_verified", False))
+      }
+    }), 201
+
+  except (TokenNotFoundException, TokenAlreadyUsedException, TokenExpiredException) as e:
+      return jsonify({"error": str(e)}), 400
+  except SQLAlchemyError:
+      return jsonify({"error": "A database error occurred. Please try again later."}), 500
+  except Exception:
+      return jsonify({"error": "Internal server error"}), 500
