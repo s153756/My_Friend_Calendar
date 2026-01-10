@@ -74,6 +74,7 @@ export default function MainCalendar() {
   const updateEvent = useCalendarStore((state) => state.updateEvent);
   const deleteEvent = useCalendarStore((state) => state.deleteEvent);
   const eventsById = useCalendarStore((state) => state.eventsById);
+  const fetchEvents = useCalendarStore((state) => state.fetchEvents);
   const currentUserEmail = useAuthStore((state) => state.user?.email ?? null);
   const editingEvent = useMemo(
     () => (editingEventId ? eventsById[editingEventId] : undefined),
@@ -205,6 +206,15 @@ export default function MainCalendar() {
       editingEventId,
     });
   }, [editingEventId, isCreateModalOpen, modalMode]);
+
+
+  useEffect(() => {
+    if (currentUserEmail) {
+      logDebug("Fetching user events from backend...");
+      fetchEvents(); 
+    }
+  }, [currentUserEmail, fetchEvents]);
+
 
   return (
     <div style={{ padding: "20px" }}>

@@ -25,3 +25,12 @@ export type CalendarEventInput = Omit<
 > & {
   participants?: string[];
 };
+
+
+export interface CalendarUserEventListResponse {
+  events: CalendarEvent[];
+}
+export interface BackendCalendarResponse {
+  data: any[];
+  status: number;
+}
