@@ -7,6 +7,7 @@ import { useAuthStore } from "./useAuthStore";
 import apiClient from "./api/apiClient";
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import LogoutButton from "./components/LogoutButton";
+import { ChangePasswordModal } from "./components/ChangePasswordModal";
 import SignUpPage from "./pages/SignUpPage";
 import MainCalendarPage from "./pages/MainCalendarPage";
 import UserProfilePage from "./pages/UserProfilePage";
@@ -24,33 +25,28 @@ const ProtectedRoute = () => {
 
 function App() {
   const { user, statusMessage, statusType } = useAuthStore();
-  const [message, setMessage] = useState<string>("");
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
 
-    const fetchFirstUser = async () => {
+    const checkBackendConnection = async () => {
       try {
         const response = await apiClient.get("/users/first");
         if (!isMounted) {
           return;
         }
-        const data = response.data as { email?: string; message?: string };
-        setMessage(data.email ?? data.message ?? "");
+        console.log("[App] Backend connection OK:", response.data);
       } catch (err) {
         if (!isMounted) {
           return;
         }
         const error = err as AxiosError;
-        if (error.response) {
-          setMessage(`Backend Error: ${error.response.status}`);
-        } else {
-          setMessage("Error connecting to backend");
-        }
+        console.error("[App] Backend connection error:", error.response?.status ?? error.message);
       }
     };
 
-    fetchFirstUser();
+    checkBackendConnection();
 
     return () => {
       isMounted = false;
@@ -68,7 +64,20 @@ function App() {
         <>
           <Link to="/">Calendar</Link>
           <div>{user.email}</div>
-          <LogoutButton />
+          <div className="d-flex gap-2">
+            <button
+              type="button"
+              className="btn btn-outline-secondary btn-sm"
+              onClick={() => setIsPasswordModalOpen(true)}
+            >
+              Reset password
+            </button>
+            <LogoutButton />
+          </div>
+          <ChangePasswordModal
+            open={isPasswordModalOpen}
+            onClose={() => setIsPasswordModalOpen(false)}
+          />
         </>
       )}
 
@@ -77,8 +86,6 @@ function App() {
           {statusMessage}
         </div>
       )}
-
-      {message && <div className="backend-message">{message}</div>}
 
       <Routes>
         <Route path="/" element={<MainCalendarPage />} />
