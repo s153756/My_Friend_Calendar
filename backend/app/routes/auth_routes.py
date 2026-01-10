@@ -4,7 +4,8 @@ from app.services.auth_service import (
     authenticate_user, refresh_tokens,
     revoke_session, generate_session_for_user,
     SessionNotFoundError, SessionRevokedError,
-    create_user, validate_password, validate_email)
+    create_user, validate_password, validate_email, generate_reset_password_token,
+    send_reset_password_email)
 from flask_jwt_extended import (
     jwt_required, get_jwt_identity, get_jwt,
     set_refresh_cookies, unset_jwt_cookies
@@ -224,7 +225,6 @@ def refresh():
     except Exception:
         return jsonify({'error': 'Token refresh failed'}), 500
 
-# Do testów 
 @auth_bp.route("/protected", methods=["GET"])
 @jwt_required()
 def protected():
@@ -249,3 +249,62 @@ def protected():
         "token_type": "access",
         "data": "test"
     }), 200
+
+
+@auth_bp.route("/request_reset-password", methods=["POST"])
+def request_password_reset():
+    """
+    Request a password reset token
+    ---
+    tags:
+      - Authentication
+    summary: Generate and send a password reset token to the user's email.
+    description: This endpoint generates a password reset token for the provided email address and sends it to the user. The email must be associated with an existing account.
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            email:
+              type: string
+              example: user@example.com
+              description: The email address of the user requesting the password reset.
+    responses:
+      200:
+        description: Password reset token sent successfully.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: Password reset token sent successfully
+      400:
+        description: Invalid request or missing email.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                  example: Email is required
+      500:
+        description: Internal server error.
+    """
+    data = request.get_json()
+    email = data.get('email')
+
+    if not email:
+        return jsonify({"error": "Email is required"}), 400
+
+    result = generate_reset_password_token(email, request.remote_addr, request.headers.get('User-Agent'))
+
+    if isinstance(result, dict):
+        send_reset_password_email(email, result['reset_token'])
+        return jsonify({"message": "Password reset token sent successfully"}), 200
+    else:
+        return jsonify({"error": result}), 400

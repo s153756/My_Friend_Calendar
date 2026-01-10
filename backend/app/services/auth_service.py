@@ -6,10 +6,12 @@ from argon2.exceptions import VerifyMismatchError
 
 from werkzeug.security import generate_password_hash
 from app.extensions import db
-from app.models import User, UserSession, UserProfile, UserSettings
+from app.models import User, UserSession, UserProfile, UserSettings, PasswordResetToken
 from datetime import datetime, timedelta, timezone
 import uuid
 from flask_jwt_extended import create_access_token, create_refresh_token, decode_token
+from flask_mail import Message
+from app.extensions import mail
 
 _password_hasher = PasswordHasher()
 
@@ -234,3 +236,62 @@ def generate_session_for_user(user_id, user_agent, remote_addr):
         'access_token': access_token,
         'refresh_token': refresh_token
     }
+
+
+def generate_reset_password_token(email, ip_address, user_agent):
+    """
+    Generate a reset token, hash it, and save it to the database for a specific user.
+
+    :param email: The email of the user.
+    :param ip_address: The IP address of the request.
+    :param user_agent: The user agent of the request.
+    :return: The plain text token or an error message.
+    """
+    normalized_email = (email or "").strip().lower()
+    if not normalized_email:
+        return "Invalid email provided."
+
+    user = User.query.filter_by(email=normalized_email).first()
+
+    if not user:
+        return f"User with email {email} does not exist."
+
+    token = create_access_token(identity=user.id, expires_delta=timedelta(hours=1))
+
+    token_hash = generate_password_hash(token)
+
+    created_at = datetime.now(timezone.utc)
+    expires_at = created_at + timedelta(hours=1)
+
+    reset_token = PasswordResetToken(
+        user_id=user.id,
+        token_hash=token_hash,
+        created_at=created_at,
+        expires_at=expires_at
+    )
+
+    db.session.add(reset_token)
+    db.session.commit()
+
+    return {
+        'reset_token': token,
+        'user_id': user.id,
+        'ip_address': ip_address,
+        'user_agent': user_agent
+    }
+
+def send_reset_password_email(email, reset_token):
+    """
+    Send a password reset email to the user.
+
+    :param email: The email of the user.
+    :param reset_token: The plain text reset token.
+    """
+    subject = "Password Reset Request"
+    body = f"Use the following token to reset your password: {reset_token}"
+
+    msg = Message(subject=subject, recipients=[email], body=body)
+    mail.send(msg)
+
+
+
