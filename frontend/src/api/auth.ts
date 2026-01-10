@@ -80,3 +80,42 @@ export async function logoutUser(): Promise<void> {
     console.error("Logout request failed:", error);
   }
 }
+
+export async function registerUser(
+  email: string,
+  password: string,
+  repeatedPassword: string,
+  fullName: string,
+  displayName: string
+): Promise<LoginResponse> {
+  try {
+    const response = await axios.post<LoginResponse>(
+      `${API_BASE_URL}/api/auth/register`,
+      {
+        email,
+        password,
+        repeated_password: repeatedPassword,
+        full_name: fullName,
+        display_name: displayName,
+      },
+      {
+        withCredentials: true,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError<{ error?: string; details?: string[] }>;
+
+    if (axiosError.response?.data?.details) {
+      throw new Error(axiosError.response.data.details[0]);
+    }
+
+    if (axiosError.response?.data?.error) {
+      throw new Error(axiosError.response.data.error);
+    }
+
+    throw new Error("Registration failed");
+  }
+}

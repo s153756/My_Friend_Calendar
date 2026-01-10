@@ -2,6 +2,7 @@ from functools import wraps
 from typing import Callable, List, Optional, Union, TYPE_CHECKING
 from flask import g, jsonify
 from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
+from app.models import User
 
 if TYPE_CHECKING:
     from app.models import User
@@ -22,7 +23,6 @@ def load_current_user() -> Optional["User"]:
         if not user_id:
             return None
         
-        from app.models import User
         user = User.query.filter(
             User.id == user_id,
             User.deleted_at.is_(None)
@@ -52,7 +52,6 @@ def require_authenticated(fn: Callable) -> Callable:
                 "message": "Token does not contain valid user identity"
             }), 401
         
-        from app.models import User
         user = User.query.filter(
             User.id == user_id,
             User.deleted_at.is_(None)

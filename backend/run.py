@@ -9,6 +9,19 @@ from flasgger import Swagger
 
 def create_app(config_overrides=None):
     app = Flask(__name__)
+
+    template = {
+        "securityDefinitions": {
+            "Bearer": {
+                "type": "apiKey",
+                "name": "Authorization",
+                "in": "header",
+                "description": "Enter: Bearer {token}"
+            }
+        },
+        "security": [{"Bearer": []}]
+    }
+
     swagger_config = {
         "headers": [],
         "specs": [
@@ -21,10 +34,18 @@ def create_app(config_overrides=None):
         ],
         "static_url_path": "/flasgger_static",
         "swagger_ui": True,
-        "specs_route": "/apidocs/"
+        "specs_route": "/apidocs/",
+        "securityDefinitions": {
+        "bearerAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header",
+            "description": "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\""
+        }
+    }
     }
 
-    Swagger(app, config=swagger_config)
+    Swagger(app, config=swagger_config, template=template)
 
     CORS(app, supports_credentials=True, resources={r"/api/*": {"origins": "http://localhost:3000"}})
 

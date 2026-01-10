@@ -95,6 +95,30 @@ def validate_password(password):
         'messages': active_errors_messages
     }
 
+MINIMAL_EMAIL_LENGTH = 5
+MAXIMAL_EMAIL_LENGTH = 254
+EMAIL_ERRORS_DETAILS = {
+    'too_short_error': f"Email must be at least {MINIMAL_EMAIL_LENGTH} characters long.",
+    'too_long_error': f"Email cannot exceed {MAXIMAL_EMAIL_LENGTH} characters.",
+    'invalid_format_error': "Email must be a valid email address.",
+}
+
+def validate_email(email):
+    errors = {
+        'too_short_error': len(email) < MINIMAL_EMAIL_LENGTH,
+        'too_long_error': len(email) > MAXIMAL_EMAIL_LENGTH,
+        'invalid_format_error': re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email) is None,
+    }
+    active_errors_messages = [
+        EMAIL_ERRORS_DETAILS[key] for key, has_error in errors.items() if has_error
+    ]
+
+    return {
+        'email_ok': not any(errors.values()),
+        'errors': errors,
+        'messages': active_errors_messages
+    }
+
 def create_user(data):
     """
     Create a new user.

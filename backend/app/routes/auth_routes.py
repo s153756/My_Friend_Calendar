@@ -79,6 +79,15 @@ def register():
             }
         ), 400
 
+    email_validation_results = validate_email(data.get("email"))
+    if not email_validation_results["email_ok"]:
+        return jsonify(
+            {
+                "error": "invalid_email",
+                "details": email_validation_results["messages"]
+            }
+        ), 400
+
     user, errors = create_user(data)
     if not user:
         return jsonify(
@@ -112,10 +121,10 @@ def login():
           properties:
             email:
               type: string
-              example: user@example.com
+              example: kacper@example.com
             password:
               type: string
-              example: password123
+              example: demo123
     responses:
       200:
         description: Successfully logged in
