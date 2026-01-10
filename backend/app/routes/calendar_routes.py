@@ -17,8 +17,6 @@ def create_new_event():
     ---
     tags:
       - Calendar
-    security:
-      - bearerAuth: []
     parameters:
       - in: body
         name: body
@@ -81,8 +79,6 @@ def get_event(event_id):
     ---
     tags:
       - Calendar
-    security:
-      - bearerAuth: []
     parameters:
       - name: event_id
         in: path
@@ -112,8 +108,6 @@ def update_event(event_id):
     ---
     tags:
       - Calendar
-    security:
-      - bearerAuth: []
     parameters:
       - name: event_id
         in: path
@@ -183,8 +177,16 @@ def update_event(event_id):
 
         return jsonify(updated_event.to_dict()), 200
 
+    except TypeError:
+        return jsonify({"error": "Invalid type for time value: str(te)"}), 400
     except ValueError as ve:
-        return jsonify({"error": "Invalid date format", "details": str(ve)}), 400
+      error_msg = str(ve)
+      if error_msg.startswith("NOT_FOUND:"):
+          return jsonify({"error": "Resource not found", "details": error_msg.replace("NOT_FOUND: ", "")}), 404
+      elif error_msg.startswith("INVALID_DATE:"):
+          return jsonify({"error": "Invalid date format", "details": error_msg.replace("INVALID_DATE: ", "")}), 400
+      else:
+          return jsonify({"error": "Invalid value", "details": error_msg}), 400
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": "Internal server error", "details": str(e)}), 500

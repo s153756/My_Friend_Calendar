@@ -2,6 +2,7 @@ import pytest
 from datetime import datetime
 from unittest.mock import patch, MagicMock
 from app.services.calendar_service import patch_event
+from uuid import UUID
 
 @pytest.fixture
 def sample_event():
@@ -82,13 +83,28 @@ class TestPatchEventFunction:
     @patch('app.services.calendar_service.db.session')
     def test_update_participants(self, mock_db, sample_event):
         """Test updating participant list"""
-        data = {'participant_ids': [2, 3, 4]}
+
+        user_id_1 = UUID('12345678-1234-5678-1234-567812345678')
+        user_id_2 = UUID('22345678-1234-5678-1234-567812345678')
+        user_id_3 = UUID('32345678-1234-5678-1234-567812345678')
+
+        data = {'participant_ids': [user_id_1, user_id_2, user_id_3]}
+
+        mock_query = MagicMock()
+        mock_db.query.return_value = mock_query
+        mock_query.filter.return_value = mock_query
+
+        mock_users = [MagicMock(id=user_id_1), MagicMock(id=user_id_2), MagicMock(id=user_id_3)]
+        mock_query.all.return_value = mock_users
 
         updated_event, was_updated = patch_event(sample_event, data)
 
         assert was_updated is True
         assert mock_db.add.call_count == 3
         mock_db.commit.assert_called_once()
+
+        mock_db.query.assert_called_once()
+        mock_query.filter.assert_called_once()
 
     @patch('app.services.calendar_service.db.session')
     def test_no_valid_fields_returns_false(self, mock_db, sample_event):

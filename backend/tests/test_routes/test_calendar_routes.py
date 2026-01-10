@@ -93,3 +93,27 @@ class TestUpdateEventEndpointIntegration:
         event = session.query(Event).filter_by(id=event_id).first()
         assert event.description == 'Brand new description'
         assert event.title == 'Original Event Title'
+
+    def test_update_event_int_time(self, client, auth_headers, created_event, session):
+        event_id = created_event['id']
+
+        update_data = {"start_time": 121231313}
+        response = client.patch(
+            f'api/calendar/events/{event_id}',
+            json=update_data,
+            headers=auth_headers
+        )
+
+        assert response.status_code == 400
+
+    def test_update_event_not_existing_users(self, client, auth_headers, created_event, session):
+        update_data = {"participant_ids": ["550e8400-e29b-41d4-a716-446655440000", "123e4567-e89b-12d3-a456-426614174000"]}
+
+        event_id = created_event['id']
+        response = client.patch(
+            f'api/calendar/events/{event_id}',
+            json=update_data,
+            headers=auth_headers
+        )
+
+        assert response.status_code == 400
