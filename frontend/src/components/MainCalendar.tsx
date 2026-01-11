@@ -1,16 +1,10 @@
 import { startTransition, useCallback, useEffect, useMemo, useState } from "react";
-import {
-  Calendar,
-  momentLocalizer,
-  type SlotInfo,
-  type View,
-  Views,
-} from "react-big-calendar";
+import { Calendar, momentLocalizer, type SlotInfo, type View, Views } from "react-big-calendar";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
+
 import CalendarNavigation from "./CalendarNavigation";
 import { CreateEventModal } from "./CreateEventModal";
-import type { CreateEventFormValues } from "./EventForm";
 import { useCalendarStore } from "../useCalendarStore";
 import { useAuthStore } from "../useAuthStore";
 import { useVisibleEvents } from "../hooks/useVisibleEvents";
@@ -19,202 +13,91 @@ import type { CalendarEvent, CalendarEventInput } from "../types/calendar";
 moment.updateLocale(moment.locale(), { week: { dow: 1, doy: 4 } });
 const localizer = momentLocalizer(moment);
 
-type ModalMode = "create" | "edit";
-
-const logDebug = (message: string, payload?: unknown) => {
-  if (process.env.NODE_ENV !== "production") {
-    console.debug(`[MainCalendar] ${message}`, payload);
-  }
+const toDateTimeLocal = (date: Date) => {
+  const d = new Date(date);
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().slice(0, 16);
 };
-
-const formatDateForInput = (date: Date): string => {
-  const pad = (value: number) => value.toString().padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(
-    date.getHours()
-  )}:${pad(date.getMinutes())}`;
-};
-
-const generateEventId = (): string => {
-  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-    return crypto.randomUUID();
-  }
-
-  return `evt_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-};
-
-const mapEventToFormDefaults = (
-  event: CalendarEvent
-): Partial<CreateEventFormValues> => ({
-  title: event.title,
-  description: event.description ?? "",
-  location: event.location ?? "",
-  color: event.color ?? "#3174ad",
-  allDay: Boolean(event.allDay),
-  start: formatDateForInput(event.start),
-  end: formatDateForInput(event.end),
-  isCancelled: Boolean(event.isCancelled),
-  participants: event.participants?.join(", ") ?? "",
-  repeatRule: event.repeatRule ?? "none",
-  category: event.category ?? "",
-  status: event.status ?? "planned",
-  reminder: event.reminder ?? "none",
-  tag: event.tag ?? "",
-});
 
 export default function MainCalendar() {
   const [view, setView] = useState<View>(Views.MONTH);
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState<ModalMode>("create");
-  const [editingEventId, setEditingEventId] = useState<string | null>(null);
-  const [initialFormValues, setInitialFormValues] =
-    useState<Partial<CreateEventFormValues>>();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<"create" | "edit">("create");
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  const [initialFormValues, setInitialFormValues] = useState<any>(null);
+
   const { events } = useVisibleEvents(view, currentDate);
-  const addEvent = useCalendarStore((state) => state.addEvent);
-  const updateEvent = useCalendarStore((state) => state.updateEvent);
-  const deleteEvent = useCalendarStore((state) => state.deleteEvent);
-  const eventsById = useCalendarStore((state) => state.eventsById);
-  const fetchEvents = useCalendarStore((state) => state.fetchEvents);
+  const { addEvent, updateEvent, deleteEvent, eventsById, fetchEvents } = useCalendarStore();
   const currentUserEmail = useAuthStore((state) => state.user?.email ?? null);
-  const editingEvent = useMemo(
-    () => (editingEventId ? eventsById[editingEventId] : undefined),
-    [editingEventId, eventsById]
+
+  const selectedEvent = useMemo(
+    () => (selectedEventId ? eventsById[selectedEventId] : undefined),
+    [selectedEventId, eventsById]
   );
 
-  const handleViewChange = (nextView: View) => {
-    setView(nextView);
-  };
 
-  const handleNavigate = (nextDate: Date) => {
-    setCurrentDate(nextDate);
-  };
+  const handleSelectSlot = useCallback(({ start, end, action }: SlotInfo) => {
+    setModalMode("create");
+    setSelectedEventId(null);
+    setInitialFormValues({
+      title: "",
+      start: toDateTimeLocal(start),
+      end: toDateTimeLocal(end),
+      allDay: action === "select" && view === Views.MONTH,
+      status: "planned",
+      repeatRule: "none"
+    });
+    setIsModalOpen(true);
+  }, [view]);
 
-  const handleGoToToday = () => {
-    setCurrentDate(new Date());
-  };
-
-  const handleSpecificDateChange = (date: Date) => {
-    setCurrentDate(date);
-  };
-
-  const handleMonthChange = (year: number, monthIndex: number) => {
-    setCurrentDate(new Date(year, monthIndex, 1));
-  };
-
-  const handleYearChange = (year: number) => {
-    setCurrentDate((prev) => new Date(year, prev.getMonth(), 1));
-  };
-
-  const handleSelectSlot = useCallback(
-    (slotInfo: SlotInfo) => {
-      logDebug("Slot selected", {
-        action: slotInfo.action,
-        start: slotInfo.start,
-        end: slotInfo.end,
-      });
-      setModalMode("create");
-      setEditingEventId(null);
-      setInitialFormValues({
-        title: "",
-        start: formatDateForInput(slotInfo.start),
-        end: formatDateForInput(slotInfo.end),
-        allDay: slotInfo.action === "select" && view === Views.MONTH,
-      });
-      setIsCreateModalOpen(true);
-    },
-    [view]
-  );
-
+ 
   const handleSelectEvent = useCallback((event: CalendarEvent) => {
-    logDebug("Event selected for editing", { id: event.id, title: event.title });
     setModalMode("edit");
-    setEditingEventId(event.id);
-    setInitialFormValues(mapEventToFormDefaults(event));
-    setIsCreateModalOpen(true);
+    setSelectedEventId(event.id);
+    setInitialFormValues({
+      ...event,
+      start: toDateTimeLocal(event.start),
+      end: toDateTimeLocal(event.end),
+      participants: event.participants?.join(", ") ?? ""
+    });
+    setIsModalOpen(true);
   }, []);
 
-  const closeModal = useCallback(() => {
-    logDebug("Closing modal", { mode: modalMode, editingEventId });
-    setIsCreateModalOpen(false);
-    setEditingEventId(null);
-    setModalMode("create");
-    setInitialFormValues(undefined);
-  }, [editingEventId, modalMode]);
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedEventId(null);
+    setInitialFormValues(null);
+  };
 
-  const handleDeleteEvent = useCallback(() => {
-    if (!editingEventId) {
-      return;
-    }
-    logDebug("Deleting event", { id: editingEventId });
-    startTransition(() => {
-      deleteEvent(editingEventId);
-    });
-    closeModal();
-  }, [closeModal, deleteEvent, editingEventId]);
+  const handleFormSubmit = (values: CalendarEventInput) => {
+    const timestamp = new Date();
 
-  const handleSubmitEvent = useCallback(
-    (values: CalendarEventInput) => {
-      const timestamp = new Date();
-      if (modalMode === "edit" && editingEventId) {
-        logDebug("Updating event", { id: editingEventId });
-        startTransition(() => {
-          updateEvent(editingEventId, {
-            ...values,
-            updatedAt: timestamp,
-          });
-        });
-        return;
-      }
-
-      const event: CalendarEvent = {
+    if (modalMode === "edit" && selectedEventId) {
+      updateEvent(selectedEventId, { ...values, updatedAt: timestamp });
+    } else {
+      const newEvent: CalendarEvent = {
         ...values,
-        id: generateEventId(),
+        id: crypto.randomUUID(),
         createdAt: timestamp,
         updatedAt: timestamp,
         createdByEmail: currentUserEmail ?? undefined,
       };
-
-      // TODO: replace local-only event creation with backend API call (createEvent)
-      logDebug("Creating new event", { id: event.id, title: event.title });
-      startTransition(() => {
-        addEvent(event);
-      });
-    },
-    [addEvent, currentUserEmail, editingEventId, modalMode, updateEvent]
-  );
-
-  const eventStyleGetter = useCallback((event: CalendarEvent) => {
-    return {
-      style: {
-        backgroundColor: event.color || "#3174ad",
-        opacity: event.isCancelled ? 0.6 : 1,
-        textDecoration: event.isCancelled ? "line-through" : "none",
-        borderRadius: "4px",
-        color: "#fff",
-      },
-    };
-  }, []);
-
-  useEffect(() => {
-    logDebug("Events count changed", { count: events.length });
-  }, [events.length]);
-
-  useEffect(() => {
-    logDebug("Modal state update", {
-      open: isCreateModalOpen,
-      mode: modalMode,
-      editingEventId,
-    });
-  }, [editingEventId, isCreateModalOpen, modalMode]);
-
-
-  useEffect(() => {
-    if (currentUserEmail) {
-      logDebug("Fetching user events from backend...");
-      fetchEvents(); 
+      addEvent(newEvent);
     }
-  }, [currentUserEmail, fetchEvents]);
+    closeModal();
+  };
 
+  const handleDelete = () => {
+    if (selectedEventId) {
+      deleteEvent(selectedEventId);
+      closeModal();
+    }
+  };
+
+  useEffect(() => {
+    if (currentUserEmail) fetchEvents();
+  }, [currentUserEmail, fetchEvents]);
 
   return (
     <div style={{ padding: "20px" }}>
@@ -222,36 +105,46 @@ export default function MainCalendar() {
       <CalendarNavigation
         view={view}
         date={currentDate}
-        onChangeView={handleViewChange}
-        onGoToToday={handleGoToToday}
-        onChangeDate={handleSpecificDateChange}
-        onChangeMonth={handleMonthChange}
-        onChangeYear={handleYearChange}
+        onChangeView={setView}
+        onGoToToday={() => setCurrentDate(new Date())}
+        onChangeDate={setCurrentDate}
+        onChangeMonth={(y, m) => setCurrentDate(new Date(y, m, 1))}
+        onChangeYear={(y) => setCurrentDate(prev => new Date(y, prev.getMonth(), 1))}
       />
+      
       <Calendar
         localizer={localizer}
         events={events}
         view={view}
-        onView={handleViewChange}
+        onView={setView}
         date={currentDate}
-        onNavigate={handleNavigate}
-        startAccessor="start"
-        endAccessor="end"
-        style={{ height: 650, marginTop: "1rem", border: "1px solid #ddd" }}
-        toolbar={false}
+        onNavigate={setCurrentDate}
         selectable
         onSelectSlot={handleSelectSlot}
         onSelectEvent={handleSelectEvent}
-        eventPropGetter={eventStyleGetter}
+        startAccessor="start"
+        endAccessor="end"
+        toolbar={false}
+        style={{ height: 650, marginTop: "1rem", border: "1px solid #ddd" }}
+        eventPropGetter={(event: CalendarEvent) => ({
+          style: {
+            backgroundColor: event.color || "#3174ad",
+            opacity: event.isCancelled ? 0.5 : 1,
+            textDecoration: event.isCancelled ? "line-through" : "none",
+            color: "white",
+            borderRadius: "4px"
+          }
+        })}
       />
+
       <CreateEventModal
-        open={isCreateModalOpen}
+        open={isModalOpen}
         onClose={closeModal}
         initialValues={initialFormValues}
         mode={modalMode}
-        onSubmit={handleSubmitEvent}
-        onDelete={modalMode === "edit" ? handleDeleteEvent : undefined}
-        creatorEmail={modalMode === "edit" ? editingEvent?.createdByEmail ?? null : null}
+        onSubmit={handleFormSubmit}
+        onDelete={modalMode === "edit" ? handleDelete : undefined}
+        creatorEmail={selectedEvent?.createdByEmail || null}
       />
     </div>
   );
