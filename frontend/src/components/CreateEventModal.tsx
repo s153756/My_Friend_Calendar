@@ -1,12 +1,12 @@
 import { memo } from "react";
 import { Modal } from "./Modal";
-import { EventForm, type CreateEventFormValues } from "./EventForm";
+import { EventForm } from "./EventForm";
 import type { CalendarEventInput } from "../types/calendar";
 
 interface CreateEventModalProps {
   open: boolean;
   onClose: () => void;
-  initialValues?: Partial<CreateEventFormValues>;
+  initialValues?: any;
   onSubmit: (values: CalendarEventInput) => void;
   mode?: "create" | "edit";
   submitLabel?: string;
@@ -24,20 +24,21 @@ export const CreateEventModal = memo(function CreateEventModal({
   onDelete,
   creatorEmail,
 }: CreateEventModalProps) {
-  const heading = mode === "edit" ? "Edytuj wydarzenie" : "Nowe wydarzenie";
-  const resolvedSubmitLabel = submitLabel ?? (mode === "edit" ? "Zapisz zmiany" : "Utwórz wydarzenie");
+  const heading = mode === "edit" ? "Edit event" : "New event";
+  const resolvedSubmitLabel =
+    submitLabel ?? (mode === "edit" ? "Save changes" : "Create event");
 
   return (
-    <Modal open={open} onClose={onClose} title={heading} maxWidth="520px">
+    <Modal open={open} onClose={onClose} title={heading}>
       <EventForm
         defaultValues={initialValues}
         submitLabel={resolvedSubmitLabel}
-        onSubmit={(values) => {
+        onSubmit={(values: CalendarEventInput) => {
           onSubmit(values);
           onClose();
         }}
         onCancel={onClose}
-        createdByEmail={creatorEmail ?? undefined}
+        createdByEmail={creatorEmail}
         onDelete={mode === "edit" ? onDelete : undefined}
       />
     </Modal>
