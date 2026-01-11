@@ -66,10 +66,10 @@ def create_app(config_overrides=None):
     app.config['MAIL_PORT'] = 587
     app.config['MAIL_USE_TLS'] = True
     app.config['MAIL_USE_SSL'] = False
-    app.config['MAIL_USERNAME'] = 'kamilkwiatkowski@gmail.com'
-    app.config['MAIL_PASSWORD'] = 'kamikw123'
-    app.config['MAIL_DEFAULT_SENDER'] = 'kamilkwiatkowski@gmail.com'
-    app.config['TESTING'] = True  # This prevents actual sending
+    app.config['MAIL_USERNAME'] = 'adamczykjan166@gmail.com'
+    app.config['MAIL_PASSWORD'] = 'iflqwsskvjlsboia'
+    app.config['MAIL_DEFAULT_SENDER'] = 'adamczykjan166@gmail.com'
+    app.config['TESTING'] = False  # This prevents actual sending
 
     jwt.init_app(app)
 
