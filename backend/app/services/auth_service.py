@@ -3,7 +3,7 @@ import re
 from werkzeug.security import check_password_hash
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
-
+from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.security import generate_password_hash
 from app.extensions import db
 from app.models import User, UserSession, UserProfile, UserSettings, PasswordResetToken
@@ -12,6 +12,8 @@ import uuid
 from flask_jwt_extended import create_access_token, create_refresh_token, decode_token
 from flask_mail import Message
 from app.extensions import mail
+import secrets
+import hashlib
 
 _password_hasher = PasswordHasher()
 
@@ -256,9 +258,8 @@ def generate_reset_password_token(email, ip_address, user_agent):
     if not user:
         return f"User with email {email} does not exist."
 
-    token = create_access_token(identity=user.id, expires_delta=timedelta(hours=1))
-
-    token_hash = generate_password_hash(token)
+    token = secrets.token_urlsafe(32)
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
 
     created_at = datetime.now(timezone.utc)
     expires_at = created_at + timedelta(hours=1)
@@ -293,5 +294,52 @@ def send_reset_password_email(email, reset_token):
     msg = Message(subject=subject, recipients=[email], body=body)
     mail.send(msg)
 
+class TokenError(Exception):
+    """Base exception for token errors"""
+    pass
 
+class TokenNotFoundException(TokenError):
+    """Token not found in database"""
+    pass
 
+class TokenExpiredException(TokenError):
+    """Token has expired"""
+    pass
+
+class TokenAlreadyUsedException(TokenError):
+    """Token has already been used"""
+    pass
+
+def hash_token(token):
+    return hashlib.sha256(token.encode()).hexdigest()
+
+def reset_password(token, password):
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
+
+    reset_token = PasswordResetToken.query.filter_by(
+        token_hash=token_hash
+    ).first()
+
+    if not reset_token:
+        raise TokenNotFoundException("Token not found")
+
+    if reset_token.used_at is not None:
+        raise TokenAlreadyUsedException("Token already used")
+
+    if reset_token.expires_at < datetime.now(timezone.utc):
+        raise TokenExpiredException("Token expired")
+
+    try:
+        reset_token.used_at = datetime.now(timezone.utc)
+
+        user = reset_token.user
+        user.password_hash = generate_password_hash(password)
+        user.updated_at = datetime.now(timezone.utc)
+
+        db.session.commit()
+
+        return user
+    except SQLAlchemyError:
+        db.session.rollback()
+
+        raise
