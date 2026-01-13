@@ -1,5 +1,5 @@
 import {CalendarUserEventListResponse, BackendCalendarResponse} from '../types/calendar'
-import apiClient from "../api/apiClient";
+import apiClient, { handleApiError } from "./apiClient";
 
 export async function getUserEventsList(): Promise<CalendarUserEventListResponse> {
   try {
@@ -23,7 +23,7 @@ export async function getUserEventsList(): Promise<CalendarUserEventListResponse
     };
     
   } catch (error: any) {
-    console.error("Fetch error:", error.response?.data || error.message);
+    handleApiError(error);
     throw new Error("Events list fetch failed.");
   }
 }
