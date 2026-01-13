@@ -13,7 +13,7 @@ const ErrorToast = ({ message, onClose }: ErrorToastProps) => {
   useEffect(() => {
     const timer = setTimeout(() => {
       closeRef.current();
-    }, 2000);
+    }, 10000);
 
     return () => clearTimeout(timer);
   }, []);
