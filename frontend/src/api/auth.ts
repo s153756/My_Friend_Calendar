@@ -70,7 +70,7 @@ export const handleTokenRefresh = async (): Promise<string> => {
 
 export async function logoutUser(): Promise<void> {
   try {
-    await apiClient.get("/auth/logout");
+    await apiClient.post("/auth/logout");
   } catch (error) {
     useAuthStore.getState().addError("Logout request failed.")
   }
