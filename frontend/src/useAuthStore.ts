@@ -2,45 +2,53 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { ApiUser } from './types/auth';
 
-type StatusType = 'info' | 'error' | 'success' | null;
 
+export type NotificationType = 'error' | 'success';
+
+interface Notification {
+  id: number;
+  message: string;
+  type: NotificationType;
+}
 
 interface AuthState {
   accessToken: string | null;
   user: ApiUser | null;
-  errors: { id: number; message: string }[];
-  successMessage: string[];
-  statusType: StatusType;
+  notifications: Notification[];
   setLogin: (accessToken: string, user: ApiUser) => void;
   setAccessToken: (newAccessToken: string | null) => void;
   logout: () => void;
-  addError: (message: string) => void;
-  removeError: (id: number) => void;
+  addNotification: (message: string, type: NotificationType) => void;
+  removeNotification: (id: number) => void;
 }
-
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       accessToken: null,
       user: null,
-      errors: [],
-      successMessage: [],
-      statusType: null,
+      notifications: [],
       setLogin: (accessToken, user) => set({ accessToken, user }),
       setAccessToken: (newAccessToken) => set({ accessToken: newAccessToken }),
       logout: () =>
         set({
           accessToken: null,
           user: null,
-          successMessage: ['You have been logged out'],
+          notifications: [
+            { id: Date.now(), message: 'You have been logged out', type: 'success' },
+          ],
         }),
-      addError: (message) => set((state) => ({
-        errors: [...state.errors, { id: Date.now() + Math.random(), message }]
-      })),
-      removeError: (id) => set((state) => ({
-        errors: state.errors.filter((e) => e.id !== id)
-      })),
+      addNotification: (message, type) =>
+        set((state) => ({
+          notifications: [
+            ...state.notifications,
+            { id: Date.now() + Math.random(), message, type },
+          ],
+        })),
+      removeNotification: (id) =>
+        set((state) => ({
+          notifications: state.notifications.filter((n) => n.id !== id),
+        })),
     }),
     {
       name: 'auth-storage',

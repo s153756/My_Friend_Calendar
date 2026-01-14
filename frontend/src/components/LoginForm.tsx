@@ -21,7 +21,7 @@ const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
       onLoginSuccess(data);
       navigate("/");
     } catch (err) {
-      console.log(err);
+      console.log("Error", err);
     } finally {
       setLoading(false);
     }

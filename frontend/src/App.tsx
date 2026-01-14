@@ -9,7 +9,7 @@ import SignUpPage from "./pages/SignUpPage";
 import MainCalendarPage from "./pages/MainCalendarPage";
 import UserProfilePage from "./pages/UserProfilePage";
 import { Navigate, Outlet } from 'react-router-dom';
-import ErrorToast from "./components/ErrorToast";
+import Toast from "./components/NotificationToast";
 
 const ProtectedRoute = () => {
   const { user } = useAuthStore();
@@ -20,18 +20,18 @@ const ProtectedRoute = () => {
 };
 
 function App() {
-  const { user, errors, successMessage, statusType, removeError} = useAuthStore();
+  const { user, notifications, removeNotification} = useAuthStore();
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
-  console.log(errors)
   return (
     <BrowserRouter>
-      <div className="toast-container">
-        {errors.map((err) => (
-          <ErrorToast 
-            key={err.id} 
-            message={err.message} 
-            onClose={() => removeError(err.id)}
+      <div className="app-toast-container">
+        {notifications.map((notification) => (
+          <Toast 
+            key={notification.id} 
+            message={notification.message} 
+            type={notification.type}
+            onClose={() => removeNotification(notification.id)}
           />
         ))}
       </div>
