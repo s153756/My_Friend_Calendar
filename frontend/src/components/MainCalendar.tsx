@@ -1,4 +1,4 @@
-import { startTransition, useCallback, useEffect, useMemo, useState } from "react";
+import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Calendar, momentLocalizer, type SlotInfo, type View, Views } from "react-big-calendar";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
@@ -94,8 +94,12 @@ export default function MainCalendar() {
       closeModal();
     }
   };
-
+  
+  const hasFetched = useRef(false);
   useEffect(() => {
+    if (!currentUserEmail) return;
+    if (hasFetched.current) return;
+    hasFetched.current = true;
     if (currentUserEmail) fetchEvents();
   }, [currentUserEmail, fetchEvents]);
 
