@@ -9,6 +9,7 @@ import { useCalendarStore } from "../useCalendarStore";
 import { useAuthStore } from "../useAuthStore";
 import { useVisibleEvents } from "../hooks/useVisibleEvents";
 import type { CalendarEvent, CalendarEventInput } from "../types/calendar";
+import { updateEventAPI } from "../api/calendar";
 
 moment.updateLocale(moment.locale(), { week: { dow: 1, doy: 4 } });
 const localizer = momentLocalizer(moment);
@@ -74,7 +75,14 @@ export default function MainCalendar() {
     const timestamp = new Date();
 
     if (modalMode === "edit" && selectedEventId) {
-      updateEvent(selectedEventId, { ...values, updatedAt: timestamp });
+      updateEventAPI(selectedEventId, values)
+        .then(() => {
+          updateEvent(selectedEventId, { ...values, updatedAt: timestamp });
+          closeModal();
+        })
+        .catch((error) => {
+          console.error("Update failed:", error);
+        });
     } else {
       const newEvent: CalendarEvent = {
         ...values,
@@ -84,8 +92,8 @@ export default function MainCalendar() {
         createdByEmail: currentUserEmail ?? undefined,
       };
       addEvent(newEvent);
+      closeModal();
     }
-    closeModal();
   };
 
   const handleDelete = () => {

@@ -1,4 +1,4 @@
-import {CalendarUserEventListResponse, BackendCalendarResponse} from '../types/calendar'
+import {CalendarUserEventListResponse, BackendCalendarResponse, CalendarEventInput} from '../types/calendar'
 import apiClient from "../api/apiClient";
 
 export async function getUserEventsList(): Promise<CalendarUserEventListResponse> {
@@ -26,4 +26,16 @@ export async function getUserEventsList(): Promise<CalendarUserEventListResponse
     console.error("Fetch error:", error.response?.data || error.message);
     throw new Error("Events list fetch failed.");
   }
+}
+
+export function updateEventAPI(eventId: string, data: CalendarEventInput) {
+  const payload: any = {
+    title: data.title,
+    start_time: data.start.toISOString(),
+    end_time: data.end.toISOString()
+  };
+  if (data.description) payload.description = data.description;
+  if (data.location) payload.location = data.location;
+  
+  return apiClient.patch(`/calendar/events/${eventId}`, payload);
 }
