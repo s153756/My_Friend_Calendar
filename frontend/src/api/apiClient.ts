@@ -57,10 +57,15 @@ apiClient.interceptors.response.use(
   }
 );
 
-export const handleApiError = (error: unknown): string => {
+export const handleApiError = (
+  error: unknown,
+  options?: { notify?: boolean; prefix?: string }
+): string => {
   const axiosError = error as AxiosError<{ error?: string; details?: string | string[] }>;
   const data = axiosError.response?.data;
   const { addNotification } = useAuthStore.getState();
+  const notify = options?.notify ?? true;
+  const prefix = options?.prefix;
 
   let errorMessages: string[] = [];
 
@@ -70,7 +75,12 @@ export const handleApiError = (error: unknown): string => {
     errorMessages = [data?.error || "An unexpected error occurred"];
   }
 
-  errorMessages.forEach((msg) => addNotification(msg, "error"));
+  if (notify) {
+    errorMessages.forEach((msg) => {
+      const message = prefix ? `${prefix}: ${msg}` : msg;
+      addNotification(message, "error");
+    });
+  }
   return errorMessages[0];
 };
 
