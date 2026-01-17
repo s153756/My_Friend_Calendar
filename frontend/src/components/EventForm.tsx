@@ -46,20 +46,21 @@ export function EventForm({ defaultValues, onSubmit, onCancel, submitLabel = "Sa
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)}>
       <div className="mb-3">
-        <label>Title</label>
+        <label className="form-label">Title</label>
         <input 
-          {...register("title", { required: "Title is reuired" })} 
+          {...register("title", { required: "Title is required" })} 
           className={`form-control ${errors.title ? "is-invalid" : ""}`} 
         />
+        {errors.title && <div className="invalid-feedback">{errors.title.message as string}</div>}
       </div>
 
       <div className="row mb-3">
         <div className="col">
-          <label>Start</label>
+          <label className="form-label">Start</label>
           <input type="datetime-local" {...register("start", { required: true })} className="form-control" />
         </div>
         <div className="col">
-          <label>Koniec</label>
+          <label className="form-label">End</label>
           <input 
             type="datetime-local" 
             {...register("end", { 
@@ -78,7 +79,7 @@ export function EventForm({ defaultValues, onSubmit, onCancel, submitLabel = "Sa
       </div>
 
       <div className="mb-3">
-        <label>Status</label>
+        <label className="form-label">Status</label>
         <select {...register("status")} className="form-select">
           <option value="planned">Planned</option>
           <option value="in_progress">In progress</option>
@@ -87,7 +88,7 @@ export function EventForm({ defaultValues, onSubmit, onCancel, submitLabel = "Sa
       </div>
 
       <div className="mb-3">
-        <label>Participants (use , to separate)</label>
+        <label className="form-label">Participants (use comma to separate)</label>
         <input {...register("participants")} className="form-control" placeholder="a@b.pl, c@d.pl" />
       </div>
 
@@ -95,10 +96,10 @@ export function EventForm({ defaultValues, onSubmit, onCancel, submitLabel = "Sa
         {onDelete && (
           <button type="button" onClick={onDelete} className="btn btn-outline-danger">Delete</button>
         )}
-        <div className="d-flex gap-2">
+        <div className="d-flex gap-2 ms-auto">
           <button type="button" onClick={onCancel} className="btn btn-secondary">Cancel</button>
           <button type="submit" disabled={isSubmitting} className="btn btn-primary">
-            {isSubmitting ? "Save..." : submitLabel}
+            {isSubmitting ? "Saving..." : submitLabel}
           </button>
         </div>
       </div>

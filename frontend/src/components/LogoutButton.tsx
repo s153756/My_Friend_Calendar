@@ -1,15 +1,12 @@
-import { FormEvent, useState } from "react";
-import type { LoginResponse } from "../types/auth";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { useAuthStore } from "../useAuthStore";
-
-interface LoginFormProps {
-  onLoginSuccess: (data: LoginResponse) => void;
-}
 
 const LogoutButton = () => {
   const { logout } = useAuthStore();
+  const [loading, setLoading] = useState(false);
+
   const handleLogout = async () => {
+    setLoading(true);
     try {
       const { logoutUser } = await import("../api/auth");
       await logoutUser();
@@ -17,12 +14,18 @@ const LogoutButton = () => {
       console.error("Logout failed:", err);
     } finally {
       logout();
+      setLoading(false);
     }
   };
 
   return (
-    <button type="button" onClick={handleLogout}>
-      Logout
+    <button 
+      type="button" 
+      className="btn btn-outline-danger btn-sm btn-logout" 
+      onClick={handleLogout}
+      disabled={loading}
+    >
+      {loading ? "Logging out..." : "Logout"}
     </button>
   );
 };
