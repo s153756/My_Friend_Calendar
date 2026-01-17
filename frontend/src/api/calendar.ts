@@ -1,5 +1,6 @@
 import {CalendarUserEventListResponse, BackendCalendarResponse} from '../types/calendar'
-import apiClient from "../api/apiClient";
+import { useAuthStore } from '../useAuthStore';
+import apiClient, { handleApiError } from "./apiClient";
 
 export async function getUserEventsList(): Promise<CalendarUserEventListResponse> {
   try {
@@ -18,12 +19,15 @@ export async function getUserEventsList(): Promise<CalendarUserEventListResponse
       createdByEmail: event.owner?.email || null,
       participants: event.participants || [],
     }));
+    if (response.status == 201){
+      useAuthStore.getState().addNotification("Your events have been loaded successfully!", "success")
+    }
     return {
       events: mappedEvents
     };
     
   } catch (error: any) {
-    console.error("Fetch error:", error.response?.data || error.message);
+    handleApiError(error);
     throw new Error("Events list fetch failed.");
   }
 }

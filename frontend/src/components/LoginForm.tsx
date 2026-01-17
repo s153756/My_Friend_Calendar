@@ -9,14 +9,11 @@ interface LoginFormProps {
 const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setError("");
-    setLoading(true);
 
     try {
       const { loginUser } = await import("../api/auth");
@@ -24,8 +21,7 @@ const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
       onLoginSuccess(data);
       navigate("/");
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Login failed";
-      setError(message);
+      console.log("Error", err);
     } finally {
       setLoading(false);
     }
@@ -57,7 +53,6 @@ const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
             disabled={loading}
           />
         </div>
-        {error && <div className="error-message">{error}</div>}
         <button type="submit" disabled={loading}>
           {loading ? "Logging in..." : "Login"}
         </button>

@@ -1,10 +1,7 @@
 import { useEffect, useState } from "react";
-import type { AxiosError } from "axios";
-import MainCalendar from "./components/MainCalendar";
 import LoginPage from "./pages/LoginPage";
 import { useAuthStore } from "./useAuthStore";
 
-import apiClient from "./api/apiClient";
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import LogoutButton from "./components/LogoutButton";
 import { ChangePasswordModal } from "./components/ChangePasswordModal";
@@ -12,49 +9,32 @@ import SignUpPage from "./pages/SignUpPage";
 import MainCalendarPage from "./pages/MainCalendarPage";
 import UserProfilePage from "./pages/UserProfilePage";
 import { Navigate, Outlet } from 'react-router-dom';
+import Toast from "./components/NotificationToast";
 
 const ProtectedRoute = () => {
   const { user } = useAuthStore();
-
   if (!user) {
     return <Navigate to="/login" replace />;
   }
-
   return <Outlet />;
 };
 
 function App() {
-  const { user, statusMessage, statusType } = useAuthStore();
+  const { user, notifications, removeNotification} = useAuthStore();
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const checkBackendConnection = async () => {
-      try {
-        const response = await apiClient.get("/users/first");
-        if (!isMounted) {
-          return;
-        }
-        console.log("[App] Backend connection OK:", response.data);
-      } catch (err) {
-        if (!isMounted) {
-          return;
-        }
-        const error = err as AxiosError;
-        console.error("[App] Backend connection error:", error.response?.status ?? error.message);
-      }
-    };
-
-    checkBackendConnection();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [statusMessage]);
 
   return (
     <BrowserRouter>
+      <div className="app-toast-container">
+        {notifications.map((notification) => (
+          <Toast 
+            key={notification.id} 
+            message={notification.message} 
+            type={notification.type}
+            onClose={() => removeNotification(notification.id)}
+          />
+        ))}
+      </div>
       {!user ? (
         <>
           <Link to="/">Calendar</Link> |<Link to="/login">Login</Link> |
@@ -79,12 +59,6 @@ function App() {
             onClose={() => setIsPasswordModalOpen(false)}
           />
         </>
-      )}
-
-      {statusMessage && (
-        <div className={`status-banner ${statusType ?? ""}`}>
-          {statusMessage}
-        </div>
       )}
 
       <Routes>

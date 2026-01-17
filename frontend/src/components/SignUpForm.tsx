@@ -12,18 +12,11 @@ const SignUpForm = ({ onSignUpSuccess }: SignUpFormProps) => {
   const [repeatedPassword, setRepeatedPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [displayName, setDisplayName] = useState("");
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { setLogin } = useAuthStore();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setError("");
-
-    if (password !== repeatedPassword) {
-      setError("Passwords don't match");
-      return;
-    }
 
     setLoading(true);
 
@@ -38,8 +31,8 @@ const SignUpForm = ({ onSignUpSuccess }: SignUpFormProps) => {
 
       setLogin(response.access_token, response.user);
       onSignUpSuccess();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Registration failed");
+    } catch{
+      console.log("Error")
     } finally {
       setLoading(false);
     }
@@ -89,7 +82,6 @@ const SignUpForm = ({ onSignUpSuccess }: SignUpFormProps) => {
           required
           disabled={loading}
         />
-        {error && <p style={{ color: "red" }}>{error}</p>}
         <button type="submit" disabled={loading}>
           {loading ? "Registering..." : "Sign Up"}
         </button>

@@ -141,11 +141,11 @@ def login():
     password = data.get("password")
 
     if not email or not password:
-        return jsonify({"error": "email_and_password_required"}), 400
+        return jsonify({"error": "email_and_password_required", "details": "Email and password required"}), 400
 
     user = authenticate_user(email, password)
     if not user:
-        return jsonify({"error": "invalid_credentials"}), 401
+        return jsonify({"error": "invalid_credentials", "details": "Invalid credentials"}), 401
 
     result = generate_session_for_user(user.id, request.user_agent, request.remote_addr)
 
