@@ -91,7 +91,7 @@ export function EventForm({ defaultValues, onSubmit, onCancel, submitLabel = "Sa
       </div>
 
       <div className="mb-3">
-        <label>Description</label>
+        <label className="form-label">Description</label>
         <textarea 
           {...register("description")} 
           className="form-control" 
@@ -101,7 +101,7 @@ export function EventForm({ defaultValues, onSubmit, onCancel, submitLabel = "Sa
       </div>
 
       <div className="mb-3">
-        <label>Location</label>
+        <label className="form-label">Location</label>
         <input 
           {...register("location")} 
           className="form-control" 
@@ -110,7 +110,7 @@ export function EventForm({ defaultValues, onSubmit, onCancel, submitLabel = "Sa
       </div>
 
       <div className="mb-3">
-        <label>Color</label>
+        <label className="form-label">Color</label>
         <input 
           type="color"
           {...register("color")}
@@ -125,7 +125,7 @@ export function EventForm({ defaultValues, onSubmit, onCancel, submitLabel = "Sa
 
       <div className="row mb-3">
         <div className="col">
-          <label>Start</label>
+          <label className="form-label">Start</label>
           <input 
             type={isAllDay ? "date" : "datetime-local"}
             {...register("start", { required: true })} 
