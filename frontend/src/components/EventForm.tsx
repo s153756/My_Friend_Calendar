@@ -82,7 +82,7 @@ export function EventForm({ defaultValues, onSubmit, onCancel, submitLabel = "Sa
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)}>
       <div className="mb-3">
-        <label>Title</label>
+        <label className="form-label">Title</label>
         <input 
           {...register("title", { required: "Title is required" })} 
           className={`form-control ${errors.title ? "is-invalid" : ""}`} 
@@ -133,7 +133,7 @@ export function EventForm({ defaultValues, onSubmit, onCancel, submitLabel = "Sa
           />
         </div>
         <div className="col">
-          <label>End</label>
+          <label className="form-label">End</label>
           <input 
             type={isAllDay ? "date" : "datetime-local"}
             {...register("end", { 
@@ -154,7 +154,7 @@ export function EventForm({ defaultValues, onSubmit, onCancel, submitLabel = "Sa
       </div>
 
       <div className="mb-3">
-        <label>Status</label>
+        <label className="form-label">Status</label>
         <select {...register("status")} className="form-select">
           <option value="planned">Planned</option>
           <option value="in_progress">In progress</option>
@@ -163,7 +163,7 @@ export function EventForm({ defaultValues, onSubmit, onCancel, submitLabel = "Sa
       </div>
 
       <div className="mb-3">
-        <label>Participants (use , to separate emails)</label>
+        <label className="form-label">Participants (use comma to separate)</label>
         <input {...register("participants")} className="form-control" placeholder="a@b.pl, c@d.pl" />
       </div>
 
@@ -171,7 +171,7 @@ export function EventForm({ defaultValues, onSubmit, onCancel, submitLabel = "Sa
         {onDelete && (
           <button type="button" onClick={onDelete} className="btn btn-outline-danger">Delete</button>
         )}
-        <div className="d-flex gap-2">
+        <div className="d-flex gap-2 ms-auto">
           <button type="button" onClick={onCancel} className="btn btn-secondary">Cancel</button>
           <button type="submit" disabled={isSubmitting} className="btn btn-primary">
             {isSubmitting ? "Saving..." : submitLabel}

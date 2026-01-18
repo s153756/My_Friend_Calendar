@@ -146,8 +146,8 @@ export default function MainCalendar() {
   }, [currentUserEmail, fetchEvents, clearEvents]);
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>Calendar</h2>
+    <div className="p-3">
+      <h2 className="mb-3">Calendar</h2>
       <CalendarNavigation
         view={view}
         date={currentDate}
@@ -158,30 +158,32 @@ export default function MainCalendar() {
         onChangeYear={(y) => setCurrentDate(prev => new Date(y, prev.getMonth(), 1))}
       />
       
-      <Calendar
-        localizer={localizer}
-        events={events}
-        view={view}
-        onView={setView}
-        date={currentDate}
-        onNavigate={setCurrentDate}
-        selectable
-        onSelectSlot={handleSelectSlot}
-        onSelectEvent={handleSelectEvent}
-        startAccessor="start"
-        endAccessor="end"
-        toolbar={false}
-        style={{ height: 650, marginTop: "1rem", border: "1px solid #ddd" }}
-        eventPropGetter={(event: CalendarEvent) => ({
-          style: {
-            backgroundColor: event.color || "#3174ad",
-            opacity: event.isCancelled ? 0.5 : 1,
-            textDecoration: event.isCancelled ? "line-through" : "none",
-            color: "white",
-            borderRadius: "4px"
-          }
-        })}
-      />
+      <div className="bg-white border rounded overflow-hidden">
+        <Calendar
+          localizer={localizer}
+          events={events}
+          view={view}
+          onView={setView}
+          date={currentDate}
+          onNavigate={setCurrentDate}
+          selectable
+          onSelectSlot={handleSelectSlot}
+          onSelectEvent={handleSelectEvent}
+          startAccessor="start"
+          endAccessor="end"
+          toolbar={false}
+          style={{ height: 650 }}
+          eventPropGetter={(event: CalendarEvent) => ({
+            style: {
+              backgroundColor: event.color || "#3174ad",
+              opacity: event.isCancelled ? 0.5 : 1,
+              textDecoration: event.isCancelled ? "line-through" : "none",
+              color: "white",
+              borderRadius: "4px"
+            }
+          })}
+        />
+      </div>
 
       <CreateEventModal
         open={isModalOpen}
