@@ -18,8 +18,6 @@ export default function LoginPage() {
   }, [user, navigate]);
 
   return (
-    <div className="login-page">
-      <LoginForm onLoginSuccess={handleLoginSuccess} />
-    </div>
+    <LoginForm onLoginSuccess={handleLoginSuccess} />
   );
 }

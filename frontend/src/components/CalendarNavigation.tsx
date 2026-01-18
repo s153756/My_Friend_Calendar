@@ -128,15 +128,15 @@ function CalendarNavigationComponent({
   };
 
   return (
-    <nav className="calendar-navigation" aria-label="Calendar navigation">
-      <div className="calendar-navigation-section">
-        <button type="button" onClick={onGoToToday}>
+    <nav className="d-flex flex-wrap align-items-center gap-3 p-3 bg-white border rounded mb-3" aria-label="Calendar navigation">
+      <div>
+        <button type="button" className="btn btn-primary" onClick={onGoToToday}>
           Today
         </button>
       </div>
-      <div className="calendar-navigation-section">
-        <label htmlFor={viewSelectId}>View</label>
-        <select id={viewSelectId} value={view} onChange={handleViewChange}>
+      <div className="d-flex align-items-center gap-2">
+        <label htmlFor={viewSelectId} className="form-label mb-0 text-muted small">View</label>
+        <select id={viewSelectId} className="form-select form-select-sm" style={{ minWidth: '100px' }} value={view} onChange={handleViewChange}>
           {viewOptions.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
@@ -144,9 +144,9 @@ function CalendarNavigationComponent({
           ))}
         </select>
       </div>
-      <div className="calendar-navigation-section">
-        <label htmlFor={monthSelectId}>Month</label>
-        <select id={monthSelectId} value={date.getMonth()} onChange={handleMonthChange}>
+      <div className="d-flex align-items-center gap-2">
+        <label htmlFor={monthSelectId} className="form-label mb-0 text-muted small">Month</label>
+        <select id={monthSelectId} className="form-select form-select-sm" style={{ minWidth: '120px' }} value={date.getMonth()} onChange={handleMonthChange}>
           {monthNames.map((monthName, index) => (
             <option key={monthName} value={index}>
               {monthName}
@@ -154,9 +154,9 @@ function CalendarNavigationComponent({
           ))}
         </select>
       </div>
-      <div className="calendar-navigation-section">
-        <label htmlFor={yearSelectId}>Year</label>
-        <select id={yearSelectId} value={currentYear} onChange={handleYearChange}>
+      <div className="d-flex align-items-center gap-2">
+        <label htmlFor={yearSelectId} className="form-label mb-0 text-muted small">Year</label>
+        <select id={yearSelectId} className="form-select form-select-sm" style={{ minWidth: '90px' }} value={currentYear} onChange={handleYearChange}>
           {years.map((yearOption) => (
             <option key={yearOption} value={yearOption}>
               {yearOption}
@@ -164,11 +164,12 @@ function CalendarNavigationComponent({
           ))}
         </select>
       </div>
-      <div className="calendar-navigation-section">
-        <label htmlFor={dateInputId}>Go to date</label>
+      <div className="d-flex align-items-center gap-2">
+        <label htmlFor={dateInputId} className="form-label mb-0 text-muted small text-nowrap">Go to date</label>
         <input
           id={dateInputId}
           type="date"
+          className="form-control form-control-sm"
           value={formatDateInputValue(date)}
           onChange={handleDateInputChange}
         />

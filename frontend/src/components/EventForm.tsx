@@ -3,28 +3,57 @@ import { useForm } from "react-hook-form";
 
 
 export function EventForm({ defaultValues, onSubmit, onCancel, submitLabel = "Save", onDelete }: any) {
-  const toDateTimeLocal = (date: Date) => {
-    const d = new Date(date);
-    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-    return d.toISOString().slice(0, 16);
+  const formatDateTimeLocal = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
-  const { register, handleSubmit, reset, watch, formState: { errors, isSubmitting } } = useForm({
+  const formatDateOnly = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const { register, handleSubmit, reset, watch, setValue, formState: { errors, isSubmitting } } = useForm({
     defaultValues: {
       title: "",
-      start: toDateTimeLocal(new Date()),
-      end: toDateTimeLocal(new Date(Date.now() + 3600000)),
+      start: formatDateTimeLocal(new Date()),
+      end: formatDateTimeLocal(new Date(Date.now() + 3600000)),
+      description: "",
+      location: "",
+      color: "#3174ad",
       status: "planned",
       repeatRule: "none",
       reminder: "none",
+      allDay: false,
       ...defaultValues
     }
   });
 
   useEffect(() => { if (defaultValues) reset(defaultValues); }, [defaultValues, reset]);
 
-  
   const startDate = watch("start");
+  const endDate = watch("end");
+  const isAllDay = watch("allDay");
+
+  useEffect(() => {
+    if (isAllDay && startDate) {
+      const startDateOnly = formatDateOnly(new Date(startDate));
+      setValue("start", startDateOnly);
+      setValue("end", startDateOnly);
+    } else if (!isAllDay && startDate && !startDate.includes("T")) {
+      const baseDate = new Date(startDate);
+      setValue("start", formatDateTimeLocal(baseDate));
+      const endDateTime = new Date(baseDate);
+      endDateTime.setHours(baseDate.getHours() + 1);
+      setValue("end", formatDateTimeLocal(endDateTime));
+    }
+  }, [isAllDay, setValue]);
 
   const handleFormSubmit = (data: any) => {
     const start = new Date(data.start);
@@ -36,40 +65,57 @@ export function EventForm({ defaultValues, onSubmit, onCancel, submitLabel = "Sa
     }
 
     onSubmit({
-      ...data,
+      title: data.title,
+      description: data.description || undefined,
+      location: data.location || undefined,
+      color: data.color || undefined,
       start,
       end,
-      participants: data.participants ? data.participants.split(",").map((e: string) => e.trim()) : undefined
+      allDay: data.allDay,
+      status: data.status,
+      repeatRule: data.repeatRule,
+      reminder: data.reminder,
+      participants: data.participants ? data.participants.split(",").map((e: string) => e.trim()).filter((e: string) => e) : undefined
     });
   };
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)}>
       <div className="mb-3">
-        <label>Title</label>
+        <label className="form-label">Title</label>
         <input 
-          {...register("title", { required: "Title is reuired" })} 
+          {...register("title", { required: "Title is required" })} 
           className={`form-control ${errors.title ? "is-invalid" : ""}`} 
+        />
+        {errors.title && <div className="invalid-feedback">{errors.title.message as string}</div>}
+      </div>
+
+      <div className="mb-3">
+        <label className="form-label">Description</label>
+        <textarea 
+          {...register("description")} 
+          className="form-control" 
+          rows={3}
+          placeholder="Optional event description"
         />
       </div>
 
-      <div className="row mb-3">
-        <div className="col">
-          <label>Start</label>
-          <input type="datetime-local" {...register("start", { required: true })} className="form-control" />
-        </div>
-        <div className="col">
-          <label>Koniec</label>
-          <input 
-            type="datetime-local" 
-            {...register("end", { 
-              required: true,
-              validate: (value) => new Date(value) > new Date(startDate) || "End date must be after start date"
-            })} 
-            className={`form-control ${errors.end ? "is-invalid" : ""}`} 
-          />
-          {errors.end && <div className="invalid-feedback">{errors.end.message as string}</div>}
-        </div>
+      <div className="mb-3">
+        <label className="form-label">Location</label>
+        <input 
+          {...register("location")} 
+          className="form-control" 
+          placeholder="Optional event location"
+        />
+      </div>
+
+      <div className="mb-3">
+        <label className="form-label">Color</label>
+        <input 
+          type="color"
+          {...register("color")}
+          className="form-control form-control-color"
+        />
       </div>
 
       <div className="mb-3 form-check">
@@ -77,8 +123,38 @@ export function EventForm({ defaultValues, onSubmit, onCancel, submitLabel = "Sa
         <label htmlFor="allDay" className="form-check-label">All day</label>
       </div>
 
+      <div className="row mb-3">
+        <div className="col">
+          <label className="form-label">Start</label>
+          <input 
+            type={isAllDay ? "date" : "datetime-local"}
+            {...register("start", { required: true })} 
+            className="form-control"
+          />
+        </div>
+        <div className="col">
+          <label className="form-label">End</label>
+          <input 
+            type={isAllDay ? "date" : "datetime-local"}
+            {...register("end", { 
+              required: true,
+              validate: (value) => {
+                const start = new Date(startDate);
+                const end = new Date(value);
+                if (isAllDay) {
+                  return end >= start || "End date must be on or after start date";
+                }
+                return end > start || "End date must be after start date";
+              }
+            })} 
+            className={`form-control ${errors.end ? "is-invalid" : ""}`}
+          />
+          {errors.end && <div className="invalid-feedback">{errors.end.message as string}</div>}
+        </div>
+      </div>
+
       <div className="mb-3">
-        <label>Status</label>
+        <label className="form-label">Status</label>
         <select {...register("status")} className="form-select">
           <option value="planned">Planned</option>
           <option value="in_progress">In progress</option>
@@ -87,7 +163,7 @@ export function EventForm({ defaultValues, onSubmit, onCancel, submitLabel = "Sa
       </div>
 
       <div className="mb-3">
-        <label>Participants (use , to separate)</label>
+        <label className="form-label">Participants (use comma to separate)</label>
         <input {...register("participants")} className="form-control" placeholder="a@b.pl, c@d.pl" />
       </div>
 
@@ -95,10 +171,10 @@ export function EventForm({ defaultValues, onSubmit, onCancel, submitLabel = "Sa
         {onDelete && (
           <button type="button" onClick={onDelete} className="btn btn-outline-danger">Delete</button>
         )}
-        <div className="d-flex gap-2">
+        <div className="d-flex gap-2 ms-auto">
           <button type="button" onClick={onCancel} className="btn btn-secondary">Cancel</button>
           <button type="submit" disabled={isSubmitting} className="btn btn-primary">
-            {isSubmitting ? "Save..." : submitLabel}
+            {isSubmitting ? "Saving..." : submitLabel}
           </button>
         </div>
       </div>

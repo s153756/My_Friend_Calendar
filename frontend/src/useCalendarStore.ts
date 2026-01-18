@@ -16,6 +16,7 @@ interface CalendarEventState {
   deleteEvent: (eventId: string) => void;
   fetchEvents: () => void;
   removeAllEvents: () => void;
+  clearEvents: () => void;
 }
 
 const materializeEvents = (
@@ -111,6 +112,15 @@ export const useCalendarStore = create<CalendarEventState>((set, get) => ({
       events: [],
     });
   }
+  clearEvents: () => {
+    set({
+      eventsById: {},
+      order: [],
+      events: [],
+      errors: [],
+      successMessage: [],
+    });
+  },
 }));
 
 export const useCalendarEvents = () =>

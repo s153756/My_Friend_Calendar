@@ -19,6 +19,9 @@ def create_event(data, owner_id):
     new_event = Event(
         title=data['title'],
         description=data.get('description'),
+        location=data.get('location'),
+        color=data.get('color'),
+        status=data.get('status') or 'planned',
         start_time=start_time,
         end_time=end_time,
         owner_id=owner_id,
@@ -66,7 +69,7 @@ def set_proposed_time(event, data):
 
 
 def patch_event(event, data):
-    allowed_fields = ['title', 'location', 'description', 'start_time', 'end_time']
+    allowed_fields = ['title', 'location', 'description', 'color', 'status', 'start_time', 'end_time']
     updated_any = False
 
     proposed_start, proposed_end = set_proposed_time(event, data)
