@@ -298,19 +298,38 @@ def request_password_reset():
       500:
         description: Internal server error.
     """
-    data = request.get_json()
-    email = data.get('email')
+    data = request.get_json(silent=True) or {}
 
-    if not email:
-        return jsonify({"error": "Email is required"}), 400
+    if not data.get("email"):
+        return jsonify(
+            {
+                "error": "field_is_required",
+                "details": ["Field 'email' is required."]
+            }
+        ), 400
 
-    result = generate_reset_password_token(email, request.remote_addr, request.headers.get('User-Agent'))
+    email_validation_results = validate_email(data.get("email"))
+    if not email_validation_results["email_ok"]:
+        return jsonify(
+            {
+                "error": "invalid_email",
+                "details": email_validation_results["messages"]
+            }
+        ), 400
 
-    if isinstance(result, dict):
-        send_reset_password_email(email, result['reset_token'])
-        return jsonify({"message": "Password reset token sent successfully"}), 200
-    else:
-        return jsonify({"error": result}), 400
+    try:
+        result = generate_reset_password_token(data["email"], request.remote_addr, request.headers.get("User-Agent"))
+
+        if isinstance(result, dict):
+            send_reset_password_email(data["email"], result["reset_token"])
+            return jsonify({"message": "Password reset token sent successfully"}), 200
+        else:
+            return jsonify({"error": result}), 400
+
+    except SQLAlchemyError:
+        return jsonify({"error": "A database error occurred. Please try again later."}), 500
+    except Exception:
+        return jsonify({"error": "Internal server error"}), 500
 
 
 @auth_bp.route("/reset-password", methods=["POST"])

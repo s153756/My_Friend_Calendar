@@ -112,10 +112,41 @@ export async function registerUser(
 }
 
 export async function changePassword(
-  _currentPassword: string,
-  _newPassword: string,
-  _confirmPassword: string
+  token: string,
+  newPassword: string,
+  confirmPassword: string
 ): Promise<void> {
-  console.log("changePassword TODO");
-  return Promise.resolve();
+  try {
+    const response = await axios.post(
+      `${API_BASE_URL}/api/auth/reset-password`,
+      { token, newPassword, confirmPassword },
+      {
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+
+    if (response.status === 200) {
+      useAuthStore.getState().addNotification("Password changed successfully!", "success");
+    } else {
+      useAuthStore.getState().addNotification("Failed to change password.", "error");
+    }
+  } catch (error) {
+    handleApiError(error);
+    useAuthStore.getState().addNotification("An error occurred while changing the password.", "error");
+    throw error;
+  }
 }
+
+export async function requestPasswordReset(email: string): Promise<void> {
+  console.log("requestPasswordReset called with email:", email);
+  try {
+    const response = await apiClient.post(`${API_BASE_URL}/api/auth/request_reset-password`, { email });
+    console.log("API response:", response);
+    useAuthStore.getState().addNotification("Password reset token sent successfully!", "success");
+  } catch (error) {
+    console.error("Error in requestPasswordReset:", error);
+    useAuthStore.getState().addNotification("Failed to send password reset token.", "error");
+    throw error;
+  }
+}
+
