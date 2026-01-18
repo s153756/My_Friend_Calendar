@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { ApiUser } from './types/auth';
-
+import { useCalendarStore } from './useCalendarStore';
 
 export type NotificationType = 'error' | 'success';
 
@@ -30,14 +30,15 @@ export const useAuthStore = create<AuthState>()(
       notifications: [],
       setLogin: (accessToken, user) => set({ accessToken, user }),
       setAccessToken: (newAccessToken) => set({ accessToken: newAccessToken }),
-      logout: () =>
+      logout: () => {
         set({
           accessToken: null,
           user: null,
           notifications: [
             { id: Date.now(), message: 'You have been logged out', type: 'success' },
           ],
-        }),
+        })
+      },
       addNotification: (message, type) =>
         set((state) => ({
           notifications: [

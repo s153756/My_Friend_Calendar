@@ -5,12 +5,12 @@ import { z } from "zod";
 
 const formSchema = z
   .object({
-    currentPassword: z.string().min(1, "Obecne hasło jest wymagane"),
-    newPassword: z.string().min(6, "Hasło musi mieć minimum 6 znaków"),
-    confirmPassword: z.string().min(1, "Potwierdź nowe hasło"),
+    currentPassword: z.string().min(1, "Current password is required"),
+    newPassword: z.string().min(6, "Password must be at least 6 characters"),
+    confirmPassword: z.string().min(1, "Please confirm your new password"),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Hasła muszą się zgadzać",
+    message: "Passwords must match",
     path: ["confirmPassword"],
   });
 
@@ -22,7 +22,6 @@ interface ChangePasswordFormProps {
 }
 
 export function ChangePasswordForm({ onSubmit, onCancel }: ChangePasswordFormProps) {
-  const [serverError, setServerError] = useState<string | null>(null);
 
   const {
     register,
@@ -39,27 +38,21 @@ export function ChangePasswordForm({ onSubmit, onCancel }: ChangePasswordFormPro
   });
 
   const onInternalSubmit = handleSubmit(async (values) => {
-    setServerError(null);
     try {
       await onSubmit(values);
       reset();
     } catch (err) {
       const error = err as Error;
-      setServerError(error.message || "Wystąpił błąd podczas zmiany hasła");
     }
   });
 
   return (
     <form onSubmit={onInternalSubmit}>
-      {serverError && (
-        <div className="alert alert-danger" role="alert">
-          {serverError}
-        </div>
-      )}
+
 
       <div className="mb-3">
         <label htmlFor="currentPassword" className="form-label">
-          Obecne hasło
+          Current password
         </label>
         <input
           type="password"
@@ -75,7 +68,7 @@ export function ChangePasswordForm({ onSubmit, onCancel }: ChangePasswordFormPro
 
       <div className="mb-3">
         <label htmlFor="newPassword" className="form-label">
-          Nowe hasło
+          New password
         </label>
         <input
           type="password"
@@ -91,7 +84,7 @@ export function ChangePasswordForm({ onSubmit, onCancel }: ChangePasswordFormPro
 
       <div className="mb-3">
         <label htmlFor="confirmPassword" className="form-label">
-          Potwierdź nowe hasło
+          Repeat new password
         </label>
         <input
           type="password"
@@ -112,10 +105,10 @@ export function ChangePasswordForm({ onSubmit, onCancel }: ChangePasswordFormPro
           onClick={onCancel}
           disabled={isSubmitting}
         >
-          Anuluj
+          Cancel
         </button>
         <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-          {isSubmitting ? "Zapisywanie..." : "Zmień hasło"}
+          {isSubmitting ? "Saving..." : "Change password"}
         </button>
       </div>
     </form>

@@ -109,8 +109,6 @@ export const useCalendarStore = create<CalendarEventState>((set, get) => ({
       eventsById: {},
       order: [],
       events: [],
-      errors: [],
-      successMessage: [],
     });
   },
 }));
