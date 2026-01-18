@@ -28,8 +28,8 @@ export async function loginUser(
     useAuthStore.getState().addNotification("Logged in successfully!", "success")
     return response.data;
   } catch (error) {
-    handleApiError(error);
-    useAuthStore.getState().addNotification("Login failed.", "error")
+    const reason = handleApiError(error, { notify: false });
+    useAuthStore.getState().addNotification(`Login error: ${reason}`, "error")
     throw new Error("Login failed.");
   }
 }
@@ -73,6 +73,7 @@ export const handleTokenRefresh = async (): Promise<string> => {
 export async function logoutUser(): Promise<void> {
   try {
     await apiClient.post("/auth/logout");
+    useAuthStore.getState().addNotification("Logged out successfully!", "success")
   } catch (error) {
     useAuthStore.getState().addNotification("Logout request failed.", "error")
   }

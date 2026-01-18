@@ -9,14 +9,18 @@ import { useCalendarStore } from "../useCalendarStore";
 import { useAuthStore } from "../useAuthStore";
 import { useVisibleEvents } from "../hooks/useVisibleEvents";
 import type { CalendarEvent, CalendarEventInput } from "../types/calendar";
+import { createEvent } from "../api/calendar";
 
 moment.updateLocale(moment.locale(), { week: { dow: 1, doy: 4 } });
 const localizer = momentLocalizer(moment);
 
-const toDateTimeLocal = (date: Date) => {
-  const d = new Date(date);
-  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-  return d.toISOString().slice(0, 16);
+const formatDateTimeLocal = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
 };
 
 export default function MainCalendar() {
@@ -28,7 +32,7 @@ export default function MainCalendar() {
   const [initialFormValues, setInitialFormValues] = useState<any>(null);
 
   const { events } = useVisibleEvents(view, currentDate);
-  const { addEvent, updateEvent, deleteEvent, eventsById, fetchEvents } = useCalendarStore();
+  const { addEvent, updateEvent, deleteEvent, eventsById, fetchEvents, clearEvents } = useCalendarStore();
   const currentUserEmail = useAuthStore((state) => state.user?.email ?? null);
 
   const selectedEvent = useMemo(
@@ -40,11 +44,21 @@ export default function MainCalendar() {
   const handleSelectSlot = useCallback(({ start, end, action }: SlotInfo) => {
     setModalMode("create");
     setSelectedEventId(null);
+    
+    const isAllDay = action === "select" && view === Views.MONTH;
+    let adjustedEnd = end;
+    
+    if (isAllDay) {
+      adjustedEnd = new Date(start);
+      adjustedEnd.setHours(23, 59, 59, 999);
+    }
+    
     setInitialFormValues({
       title: "",
-      start: toDateTimeLocal(start),
-      end: toDateTimeLocal(end),
-      allDay: action === "select" && view === Views.MONTH,
+      start: formatDateTimeLocal(start),
+      end: formatDateTimeLocal(adjustedEnd),
+      allDay: isAllDay,
+      color: "#3174ad",
       status: "planned",
       repeatRule: "none"
     });
@@ -57,8 +71,9 @@ export default function MainCalendar() {
     setSelectedEventId(event.id);
     setInitialFormValues({
       ...event,
-      start: toDateTimeLocal(event.start),
-      end: toDateTimeLocal(event.end),
+      start: formatDateTimeLocal(event.start),
+      end: formatDateTimeLocal(event.end),
+      color: event.color || "#3174ad",
       participants: event.participants?.join(", ") ?? ""
     });
     setIsModalOpen(true);
@@ -70,22 +85,43 @@ export default function MainCalendar() {
     setInitialFormValues(null);
   };
 
-  const handleFormSubmit = (values: CalendarEventInput) => {
+  const handleFormSubmit = async (values: CalendarEventInput) => {
     const timestamp = new Date();
 
     if (modalMode === "edit" && selectedEventId) {
       updateEvent(selectedEventId, { ...values, updatedAt: timestamp });
+      closeModal();
     } else {
-      const newEvent: CalendarEvent = {
-        ...values,
-        id: crypto.randomUUID(),
-        createdAt: timestamp,
-        updatedAt: timestamp,
-        createdByEmail: currentUserEmail ?? undefined,
-      };
-      addEvent(newEvent);
+      try {
+        const newEvent = await createEvent({
+          title: values.title,
+          description: values.description,
+          location: values.location,
+          color: values.color,
+          status: values.status,
+          start: values.start,
+          end: values.end,
+        });
+
+        const fullEvent: CalendarEvent = {
+          ...newEvent,
+          color: values.color ?? newEvent.color,
+          allDay: values.allDay,
+          status: values.status ?? newEvent.status,
+          repeatRule: values.repeatRule,
+          reminder: values.reminder,
+          createdAt: timestamp,
+          updatedAt: timestamp,
+          createdByEmail: currentUserEmail ?? undefined,
+        };
+
+        addEvent(fullEvent);
+        closeModal();
+      } catch (error: any) {
+        console.error("Failed to create event:", error);
+        alert(error.message || "Failed to create event. Please try again.");
+      }
     }
-    closeModal();
   };
 
   const handleDelete = () => {
@@ -94,14 +130,20 @@ export default function MainCalendar() {
       closeModal();
     }
   };
-  
-  const hasFetched = useRef(false);
+
+  const hasFetchedRef = useRef(false);
+
   useEffect(() => {
-    if (!currentUserEmail) return;
-    if (hasFetched.current) return;
-    hasFetched.current = true;
-    if (currentUserEmail) fetchEvents();
-  }, [currentUserEmail, fetchEvents]);
+    if (currentUserEmail) {
+      if (!hasFetchedRef.current) {
+        fetchEvents();
+        hasFetchedRef.current = true;
+      }
+    } else {
+      clearEvents();
+      hasFetchedRef.current = false;
+    }
+  }, [currentUserEmail, fetchEvents, clearEvents]);
 
   return (
     <div className="p-3">
