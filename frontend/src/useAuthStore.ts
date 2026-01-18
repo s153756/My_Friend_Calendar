@@ -38,7 +38,6 @@ export const useAuthStore = create<AuthState>()(
             { id: Date.now(), message: 'You have been logged out', type: 'success' },
           ],
         })
-        useCalendarStore.getState().clearEvents()
       },
       addNotification: (message, type) =>
         set((state) => ({
