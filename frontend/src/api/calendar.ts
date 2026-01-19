@@ -40,7 +40,7 @@ export async function getUserEventsList(): Promise<CalendarUserEventListResponse
   }
 }
 
-export async function updateEventAPI(eventId: string, data: CalendarEventInput): Promise<void> {
+export async function updateEventAPI(eventId: string, data: CalendarEventInput): Promise<CalendarEvent> {
   try {
     const payload: {
       title: string;
@@ -48,6 +48,8 @@ export async function updateEventAPI(eventId: string, data: CalendarEventInput):
       end_time: string;
       description?: string;
       location?: string;
+      color?: string;
+      status?: string;
     } = {
       title: data.title,
       start_time: data.start.toISOString(),
@@ -56,9 +58,24 @@ export async function updateEventAPI(eventId: string, data: CalendarEventInput):
 
     if (data.description) payload.description = data.description;
     if (data.location) payload.location = data.location;
+    if (data.color) payload.color = data.color;
+    if (data.status) payload.status = data.status;
 
-    await apiClient.patch(`/calendar/events/${eventId}`, payload);
+    const response = await apiClient.patch(`/calendar/events/${eventId}`, payload);
     useAuthStore.getState().addNotification("Event updated successfully!", "success");
+
+    return {
+      id: String(response.data.id),
+      title: response.data.title,
+      description: response.data.description,
+      location: response.data.location,
+      color: response.data.color,
+      status: response.data.status,
+      start: new Date(response.data.start_time),
+      end: new Date(response.data.end_time),
+      createdByEmail: response.data.owner?.email || null,
+      participants: response.data.participants?.map((p: any) => p.email) || [],
+    };
   } catch (error) {
     handleApiError(error);
     throw new Error("Event update failed.");

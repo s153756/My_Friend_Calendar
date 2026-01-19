@@ -94,8 +94,12 @@ export default function MainCalendar() {
 
     if (modalMode === "edit" && selectedEventId) {
       try {
-        await updateEventAPI(selectedEventId, values);
-        updateEvent(selectedEventId, { ...values, updatedAt: timestamp });
+        const updatedEvent = await updateEventAPI(selectedEventId, values);
+        updateEvent(selectedEventId, { 
+          ...updatedEvent, 
+          allDay: values.allDay,
+          updatedAt: timestamp 
+        });
         closeModal();
       } catch (error) {
         console.error("Update failed:", error);
