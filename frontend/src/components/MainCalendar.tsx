@@ -5,11 +5,12 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 
 import CalendarNavigation from "./CalendarNavigation";
 import { CreateEventModal } from "./CreateEventModal";
+import { Modal } from "./Modal";
 import { useCalendarStore } from "../useCalendarStore";
 import { useAuthStore } from "../useAuthStore";
 import { useVisibleEvents } from "../hooks/useVisibleEvents";
 import type { CalendarEvent, CalendarEventInput } from "../types/calendar";
-import { createEvent } from "../api/calendar";
+import { createEvent, deleteEvent as deleteEventApi } from "../api/calendar";
 
 moment.updateLocale(moment.locale(), { week: { dow: 1, doy: 4 } });
 const localizer = momentLocalizer(moment);
@@ -30,6 +31,7 @@ export default function MainCalendar() {
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [initialFormValues, setInitialFormValues] = useState<any>(null);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
   const { events } = useVisibleEvents(view, currentDate);
   const { addEvent, updateEvent, deleteEvent, eventsById, fetchEvents, clearEvents } = useCalendarStore();
@@ -83,6 +85,7 @@ export default function MainCalendar() {
     setIsModalOpen(false);
     setSelectedEventId(null);
     setInitialFormValues(null);
+    setIsDeleteConfirmOpen(false);
   };
 
   const handleFormSubmit = async (values: CalendarEventInput) => {
@@ -124,10 +127,24 @@ export default function MainCalendar() {
     }
   };
 
-  const handleDelete = () => {
+  const handleDeleteRequest = () => {
+    setIsDeleteConfirmOpen(true);
+  };
+
+  const handleDeleteConfirmClose = () => {
+    setIsDeleteConfirmOpen(false);
+  };
+
+  const handleDeleteConfirm = async () => {
     if (selectedEventId) {
-      deleteEvent(selectedEventId);
-      closeModal();
+      try {
+        await deleteEventApi(selectedEventId);
+        deleteEvent(selectedEventId);
+        closeModal();
+      } catch (error: any) {
+        console.error("Failed to delete event:", error);
+        setIsDeleteConfirmOpen(false);
+      }
     }
   };
 
@@ -191,9 +208,26 @@ export default function MainCalendar() {
         initialValues={initialFormValues}
         mode={modalMode}
         onSubmit={handleFormSubmit}
-        onDelete={modalMode === "edit" ? handleDelete : undefined}
+        onDelete={modalMode === "edit" ? handleDeleteRequest : undefined}
         creatorEmail={selectedEvent?.createdByEmail || null}
       />
+
+      <Modal
+        open={isDeleteConfirmOpen}
+        onClose={handleDeleteConfirmClose}
+        title="Delete event"
+        maxWidth="420px"
+      >
+        <p className="mb-4">Are you sure you want to delete this event?</p>
+        <div className="d-flex justify-content-end gap-2">
+          <button type="button" className="btn btn-secondary" onClick={handleDeleteConfirmClose}>
+            Cancel
+          </button>
+          <button type="button" className="btn btn-danger" onClick={handleDeleteConfirm}>
+            Delete
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 }
