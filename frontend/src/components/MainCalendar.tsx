@@ -93,15 +93,14 @@ export default function MainCalendar() {
     const timestamp = new Date();
 
     if (modalMode === "edit" && selectedEventId) {
-      updateEventAPI(selectedEventId, values)
-        .then(() => {
-          updateEvent(selectedEventId, { ...values, updatedAt: timestamp });
-          closeModal();
-        })
-        .catch((error) => {
-          console.error("Update failed:", error);
-          alert("Failed to update event. Please try again.");
-        });
+      try {
+        await updateEventAPI(selectedEventId, values);
+        updateEvent(selectedEventId, { ...values, updatedAt: timestamp });
+        closeModal();
+      } catch (error: any) {
+        console.error("Update failed:", error);
+        alert(error.message || "Failed to update event. Please try again.");
+      }
     } else {
       try {
         const newEvent = await createEvent({
