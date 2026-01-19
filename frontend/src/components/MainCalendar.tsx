@@ -34,6 +34,9 @@ export default function MainCalendar() {
   const { events } = useVisibleEvents(view, currentDate);
   const { addEvent, updateEvent, deleteEvent, eventsById, fetchEvents, clearEvents } = useCalendarStore();
   const currentUserEmail = useAuthStore((state) => state.user?.email ?? null);
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const addNotification = useAuthStore((state) => state.addNotification);
+  const isLoggedIn = !!accessToken;
 
   const selectedEvent = useMemo(
     () => (selectedEventId ? eventsById[selectedEventId] : undefined),
@@ -42,6 +45,11 @@ export default function MainCalendar() {
 
 
   const handleSelectSlot = useCallback(({ start, end, action }: SlotInfo) => {
+    if (!isLoggedIn) {
+      addNotification("You must be logged in to create an event. Please log in.", "error");
+      return;
+    }
+
     setModalMode("create");
     setSelectedEventId(null);
     
@@ -63,10 +71,15 @@ export default function MainCalendar() {
       repeatRule: "none"
     });
     setIsModalOpen(true);
-  }, [view]);
+  }, [view, isLoggedIn, addNotification]);
 
  
   const handleSelectEvent = useCallback((event: CalendarEvent) => {
+    if (!isLoggedIn) {
+      addNotification("You must be logged in to edit an event. Please log in.", "error");
+      return;
+    }
+
     setModalMode("edit");
     setSelectedEventId(event.id);
     setInitialFormValues({
@@ -77,7 +90,7 @@ export default function MainCalendar() {
       participants: event.participants?.join(", ") ?? ""
     });
     setIsModalOpen(true);
-  }, []);
+  }, [isLoggedIn, addNotification]);
 
   const closeModal = () => {
     setIsModalOpen(false);
