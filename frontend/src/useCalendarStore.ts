@@ -9,11 +9,13 @@ interface CalendarEventState {
   order: string[];
   events: CalendarEvent[];
   isLoading: boolean;
-  error: string | null;
+  errors: string[];
+  successMessage: string[];
   addEvent: (event: CalendarEvent) => void;
   updateEvent: (eventId: string, updates: Partial<CalendarEvent>) => void;
   deleteEvent: (eventId: string) => void;
   fetchEvents: () => void;
+  clearEvents: () => void;
 }
 
 const materializeEvents = (
@@ -29,7 +31,8 @@ export const useCalendarStore = create<CalendarEventState>((set, get) => ({
   order: [],
   events: [],
   isLoading: false,
-  error: null,
+  errors: [],
+  successMessage:[],
   addEvent: (event) =>
     set((state) => {
       const nextEventsById: EventsDictionary = {
@@ -79,7 +82,7 @@ export const useCalendarStore = create<CalendarEventState>((set, get) => ({
       };
     }),
   fetchEvents: async () => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true});
 
     try {
       const data = await getUserEventsList();
@@ -98,9 +101,15 @@ export const useCalendarStore = create<CalendarEventState>((set, get) => ({
       });
     } catch (err: any) {
       const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
-      set({ error: errorMessage, isLoading: false });
       console.error("[Store: fetchEvents] Error:", errorMessage);
     }
+  },
+  clearEvents: () => {
+    set({
+      eventsById: {},
+      order: [],
+      events: [],
+    });
   },
 }));
 

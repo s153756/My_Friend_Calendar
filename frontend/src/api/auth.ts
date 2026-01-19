@@ -1,14 +1,11 @@
 import axios, { type AxiosError } from "axios";
 import Cookies from "js-cookie";
-import apiClient from "./apiClient";
+import apiClient, { handleApiError } from "./apiClient";
 import { useAuthStore } from "../useAuthStore";
 import type { LoginResponse } from "../types/auth";
 
 const API_BASE_URL = process.env.REACT_APP_API_URL ?? "http://localhost:5000";
 
-type LoginErrorResponse = {
-  error?: string;
-};
 
 type RefreshResponse = {
   access_token: string;
@@ -27,16 +24,13 @@ export async function loginUser(
         headers: { "Content-Type": "application/json" },
       }
     );
-
+    
+    useAuthStore.getState().addNotification("Logged in successfully!", "success")
     return response.data;
   } catch (error) {
-    const axiosError = error as AxiosError<LoginErrorResponse>;
-
-    if (axiosError.response?.data?.error) {
-      throw new Error(axiosError.response.data.error);
-    }
-
-    throw new Error("Login failed due to network or server error.");
+    const reason = handleApiError(error, { notify: false });
+    useAuthStore.getState().addNotification(`Login error: ${reason}`, "error")
+    throw new Error("Login failed.");
   }
 }
 
@@ -44,6 +38,7 @@ export const handleTokenRefresh = async (): Promise<string> => {
   const csrfToken = Cookies.get("csrf_refresh_token");
 
   if (!csrfToken) {
+    useAuthStore.getState().addNotification("CSRF token not found. Cannot refresh.", "error")
     throw new Error("CSRF token not found. Cannot refresh.");
   }
 
@@ -63,11 +58,13 @@ export const handleTokenRefresh = async (): Promise<string> => {
 
     if (newAccessToken) {
       useAuthStore.getState().setAccessToken(newAccessToken);
+      useAuthStore.getState().addNotification("Login token has been refreshed!", "success")
       return newAccessToken;
     }
-
+    useAuthStore.getState().addNotification("Refresh response did not include a new access token.", "error")
     throw new Error("Refresh response did not include a new access token.");
   } catch (error) {
+    useAuthStore.getState().addNotification("Refresh token failed or expired.", "error")
     console.error("Refresh token failed or expired:", error);
     throw error;
   }
@@ -75,9 +72,10 @@ export const handleTokenRefresh = async (): Promise<string> => {
 
 export async function logoutUser(): Promise<void> {
   try {
-    await apiClient.get("/auth/logout");
+    await apiClient.post("/auth/logout");
+    useAuthStore.getState().addNotification("Logged out successfully!", "success")
   } catch (error) {
-    console.error("Logout request failed:", error);
+    useAuthStore.getState().addNotification("Logout request failed.", "error")
   }
 }
 
@@ -103,20 +101,14 @@ export async function registerUser(
         headers: { "Content-Type": "application/json" },
       }
     );
-
+    if (response.status == 201){
+      useAuthStore.getState().addNotification("Registration completed successfully!", "success")
+    }
     return response.data;
   } catch (error) {
-    const axiosError = error as AxiosError<{ error?: string; details?: string[] }>;
-
-    if (axiosError.response?.data?.details) {
-      throw new Error(axiosError.response.data.details[0]);
-    }
-
-    if (axiosError.response?.data?.error) {
-      throw new Error(axiosError.response.data.error);
-    }
-
-    throw new Error("Registration failed");
+    handleApiError(error);
+    useAuthStore.getState().addNotification("Registration failed", "error")
+    throw new Error("Registration failed")
   }
 }
 

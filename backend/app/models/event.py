@@ -10,7 +10,9 @@ class Event(db.Model):
     description = db.Column(db.Text, nullable=True)
     start_time = db.Column(db.DateTime, nullable=False)
     location = db.Column(db.String(255), nullable=True)
-    end_time = db.Column(db.DateTime(timezone=True), nullable=False)
+    color = db.Column(db.String(20), nullable=True)
+    status = db.Column(db.String(20), nullable=True)
+    end_time = db.Column(db.DateTime, nullable=False)
     owner_id = db.Column(UUID(as_uuid=True), db.ForeignKey('users.id'), nullable=False)
 
     owner = db.relationship('User', back_populates='owned_events')
@@ -38,6 +40,8 @@ class Event(db.Model):
             'start_time': self.start_time.isoformat() if self.start_time else None,
             'end_time': self.end_time.isoformat() if self.end_time else None,
             'location': self.location,
+            'color': self.color,
+            'status': self.status,
             'owner': {
                 'id': self.owner.id,
                 'email': self.owner.email

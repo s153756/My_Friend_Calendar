@@ -1,6 +1,6 @@
 import { FormEvent, useState } from "react";
 import type { LoginResponse } from "../types/auth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 interface LoginFormProps {
   onLoginSuccess: (data: LoginResponse) => void;
@@ -9,13 +9,11 @@ interface LoginFormProps {
 const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setError("");
     setLoading(true);
 
     try {
@@ -24,44 +22,53 @@ const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
       onLoginSuccess(data);
       navigate("/");
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Login failed";
-      setError(message);
+      console.log("Error", err);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="login-form">
-      <h2>Login</h2>
+    <div className="card shadow p-4" style={{ maxWidth: '420px', width: '100%' }}>
+      <div className="text-center mb-4">
+        <h2 className="fw-semibold">Welcome Back</h2>
+        <p className="text-muted mb-0">Sign in to your account</p>
+      </div>
       <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="email">Email</label>
+        <div className="mb-3">
+          <label htmlFor="email" className="form-label">Email address</label>
           <input
             id="email"
             type="email"
+            className="form-control"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
+            placeholder="Enter your email"
             required
             disabled={loading}
           />
         </div>
-        <div className="form-group">
-          <label htmlFor="password">Password</label>
+        <div className="mb-3">
+          <label htmlFor="password" className="form-label">Password</label>
           <input
             id="password"
             type="password"
+            className="form-control"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
+            placeholder="Enter your password"
             required
             disabled={loading}
           />
         </div>
-        {error && <div className="error-message">{error}</div>}
-        <button type="submit" disabled={loading}>
-          {loading ? "Logging in..." : "Login"}
+        <button type="submit" className="btn btn-primary w-100 mt-2" disabled={loading}>
+          {loading ? "Signing in..." : "Sign In"}
         </button>
       </form>
+      <div className="text-center mt-4 pt-3 border-top">
+        <span className="text-muted">Don't have an account? </span>
+        <Link to="/sign_up">Create one</Link>
+      </div>
     </div>
   );
 };

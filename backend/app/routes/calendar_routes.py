@@ -65,9 +65,12 @@ def create_new_event():
             "id": event.id,
             "title": event.title,
             "description": event.description,
-            "start_time": event.start_time,
-            "end_time": event.end_time,
-            "owner_id": event.owner_id
+            "location": event.location,
+          "color": event.color,
+          "status": event.status,
+            "start_time": event.start_time.isoformat(),
+            "end_time": event.end_time.isoformat(),
+            "owner_id": str(event.owner_id)
         }), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -266,13 +269,15 @@ def get_events():
             'start_time': event.start_time.isoformat(),
             'end_time': event.end_time.isoformat(),
             'location': event.location,
+            'color': event.color,
+            'status': event.status,
             'owner': {
-                'id': event.owner.id,
+                'id': str(event.owner.id),
                 'email': event.owner.email
             },
             'participants': [{
-                'id': p.id,
-                'email': p.email
+                'id': str(p.user.id),
+                'email': p.user.email
             } for p in event.participant_links.all()]
         })
 

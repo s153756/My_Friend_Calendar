@@ -57,4 +57,31 @@ apiClient.interceptors.response.use(
   }
 );
 
+export const handleApiError = (
+  error: unknown,
+  options?: { notify?: boolean; prefix?: string }
+): string => {
+  const axiosError = error as AxiosError<{ error?: string; details?: string | string[] }>;
+  const data = axiosError.response?.data;
+  const { addNotification } = useAuthStore.getState();
+  const notify = options?.notify ?? true;
+  const prefix = options?.prefix;
+
+  let errorMessages: string[] = [];
+
+  if (data?.details) {
+    errorMessages = Array.isArray(data.details) ? data.details : [data.details];
+  } else {
+    errorMessages = [data?.error || "An unexpected error occurred"];
+  }
+
+  if (notify) {
+    errorMessages.forEach((msg) => {
+      const message = prefix ? `${prefix}: ${msg}` : msg;
+      addNotification(message, "error");
+    });
+  }
+  return errorMessages[0];
+};
+
 export default apiClient;

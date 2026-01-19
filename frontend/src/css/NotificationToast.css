@@ -1,0 +1,143 @@
+.app-toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 99999;
+  pointer-events: none;
+}
+
+/* ===================== */
+/* Base Toast            */
+/* ===================== */
+
+.app-toast {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: 8px;
+  min-width: 320px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  animation: slideIn 0.3s ease-out;
+  pointer-events: auto;
+  position: relative;
+}
+
+/* ===================== */
+/* Content               */
+/* ===================== */
+
+.app-toast-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-right: 10px;
+}
+
+.app-toast-text {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* ===================== */
+/* Icon                  */
+/* ===================== */
+
+.app-toast-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #fff;
+}
+
+/* ===================== */
+/* Close button          */
+/* ===================== */
+
+.app-toast-close-x {
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  color: #8c8c8c;
+  cursor: pointer;
+  padding: 8px;
+  margin: -8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color .2s, background-color .2s;
+  border-radius: 4px;
+  line-height: 1;
+}
+
+.app-toast-close-x:hover {
+  background-color: rgba(0,0,0,0.05);
+}
+
+/* ===================== */
+/* Error variant         */
+/* ===================== */
+
+.app-toast-error {
+  background-color: #fff1f0;
+  border: 1px solid #ffa39e;
+}
+
+.app-toast-error .app-toast-icon {
+  background-color: #ff4d4f;
+}
+
+.app-toast-error .app-toast-text {
+  color: #262626;
+}
+
+.app-toast-error .app-toast-close-x:hover {
+  color: #ff4d4f;
+  background-color: rgba(255,77,79,0.1);
+}
+
+/* ===================== */
+/* Success variant       */
+/* ===================== */
+
+.app-toast-success {
+  background-color: #f6ffed;
+  border: 1px solid #b7eb8f;
+}
+
+.app-toast-success .app-toast-icon {
+  background-color: #52c41a;
+}
+
+.app-toast-success .app-toast-text {
+  color: #262626;
+}
+
+.app-toast-success .app-toast-close-x:hover {
+  color: #52c41a;
+  background-color: rgba(82,196,26,0.1);
+}
+
+/* ===================== */
+/* Animation             */
+/* ===================== */
+
+@keyframes slideIn {
+  from {
+    transform: translateX(40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
