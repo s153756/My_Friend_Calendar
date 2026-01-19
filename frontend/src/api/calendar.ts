@@ -42,7 +42,13 @@ export async function getUserEventsList(): Promise<CalendarUserEventListResponse
 
 export async function updateEventAPI(eventId: string, data: CalendarEventInput): Promise<void> {
   try {
-    const payload: any = {
+    const payload: {
+      title: string;
+      start_time: string;
+      end_time: string;
+      description?: string;
+      location?: string;
+    } = {
       title: data.title,
       start_time: data.start.toISOString(),
       end_time: data.end.toISOString(),
@@ -53,7 +59,7 @@ export async function updateEventAPI(eventId: string, data: CalendarEventInput):
 
     await apiClient.patch(`/calendar/events/${eventId}`, payload);
     useAuthStore.getState().addNotification("Event updated successfully!", "success");
-  } catch (error: any) {
+  } catch (error) {
     handleApiError(error);
     throw new Error("Event update failed.");
   }
@@ -106,7 +112,7 @@ export async function createEvent(eventData: {
       createdByEmail: null,
       participants: [],
     };
-  } catch (error: any) {
+  } catch (error) {
     handleApiError(error);
     throw new Error("Event creation failed.");
   }

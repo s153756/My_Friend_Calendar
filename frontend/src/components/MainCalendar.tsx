@@ -97,9 +97,10 @@ export default function MainCalendar() {
         await updateEventAPI(selectedEventId, values);
         updateEvent(selectedEventId, { ...values, updatedAt: timestamp });
         closeModal();
-      } catch (error: any) {
+      } catch (error) {
         console.error("Update failed:", error);
-        alert(error.message || "Failed to update event. Please try again.");
+        const message = error instanceof Error ? error.message : "Failed to update event. Please try again.";
+        alert(message);
       }
     } else {
       try {
@@ -127,9 +128,10 @@ export default function MainCalendar() {
 
         addEvent(fullEvent);
         closeModal();
-      } catch (error: any) {
+      } catch (error) {
         console.error("Failed to create event:", error);
-        alert(error.message || "Failed to create event. Please try again.");
+        const message = error instanceof Error ? error.message : "Failed to create event. Please try again.";
+        alert(message);
       }
     }
   };
