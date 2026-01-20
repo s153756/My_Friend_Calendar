@@ -107,7 +107,7 @@ export const Modal = memo(function Modal({
               type="button"
               className="btn-close"
               onClick={onClose}
-              aria-label="Zamknij"
+              aria-label="Close"
             />
           </div>
           <div className="modal-body">{children}</div>
