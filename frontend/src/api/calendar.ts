@@ -42,6 +42,16 @@ export async function getUserEventsList(): Promise<CalendarUserEventListResponse
 
 export async function updateEventAPI(eventId: string, data: CalendarEventInput): Promise<CalendarEvent> {
   try {
+    const formatLocalISO = (date: Date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+      return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+    };
+
     const payload: {
       title: string;
       start_time: string;
@@ -52,8 +62,8 @@ export async function updateEventAPI(eventId: string, data: CalendarEventInput):
       status?: string;
     } = {
       title: data.title,
-      start_time: data.start.toISOString(),
-      end_time: data.end.toISOString(),
+      start_time: formatLocalISO(data.start),
+      end_time: formatLocalISO(data.end),
     };
 
     if (data.description) payload.description = data.description;

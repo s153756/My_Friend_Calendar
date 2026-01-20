@@ -96,15 +96,18 @@ export default function MainCalendar() {
       try {
         const updatedEvent = await updateEventAPI(selectedEventId, values);
         updateEvent(selectedEventId, { 
-          ...updatedEvent, 
+          ...updatedEvent,
           allDay: values.allDay,
+          repeatRule: values.repeatRule,
+          reminder: values.reminder,
           updatedAt: timestamp 
         });
         closeModal();
+        useAuthStore.getState().addNotification("Event updated successfully!", "success");
       } catch (error) {
         console.error("Update failed:", error);
         const message = error instanceof Error ? error.message : "Failed to update event. Please try again.";
-        alert(message);
+        useAuthStore.getState().addNotification(message, "error");
       }
     } else {
       try {
