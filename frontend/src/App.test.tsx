@@ -19,6 +19,6 @@ test('navigates to and renders login page', async () => {
 
   // 2. Wait for the heading to appear on the new page
   await waitFor(() => {
-    expect(screen.getByRole('heading', { name: /login/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /welcome back/i })).toBeInTheDocument();
   });
 });
