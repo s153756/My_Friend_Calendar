@@ -321,7 +321,7 @@ def request_password_reset():
         result = generate_reset_password_token(data["email"], request.remote_addr, request.headers.get("User-Agent"))
 
         if isinstance(result, dict):
-            send_reset_password_email(data["email"], result["reset_token"])
+            send_reset_password_email(data["email"], result["reset_link"])
             return jsonify({"message": "Password reset token sent successfully"}), 200
         else:
             return jsonify({"error": result}), 400
