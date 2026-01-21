@@ -116,11 +116,8 @@ export default function MainCalendar() {
           updatedAt: timestamp 
         });
         closeModal();
-        useAuthStore.getState().addNotification("Event updated successfully!", "success");
       } catch (error) {
         console.error("Update failed:", error);
-        const message = error instanceof Error ? error.message : "Failed to update event. Please try again.";
-        useAuthStore.getState().addNotification(message, "error");
       }
     } else {
       try {
