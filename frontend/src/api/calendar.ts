@@ -8,6 +8,16 @@ import {
   CalendarEventInput,
 } from '../types/calendar';
 
+export async function deleteEvent(eventId: string): Promise<void> {
+  try {
+    await apiClient.delete(`/calendar/events/${eventId}`);
+    useAuthStore.getState().addNotification("Event deleted successfully!", "success");
+  } catch (error: any) {
+    handleApiError(error);
+    throw new Error("Event deletion failed.");
+  }
+}
+
 export async function getUserEventsList(): Promise<CalendarUserEventListResponse> {
   try {
     const response = await apiClient.get("/calendar/events/");
