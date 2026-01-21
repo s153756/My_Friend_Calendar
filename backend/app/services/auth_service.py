@@ -275,7 +275,7 @@ def generate_reset_password_token(email, ip_address, user_agent):
     db.session.commit()
 
     # Generowanie linku do resetu hasła
-    reset_link = f"http://localhost:3000/Password_ResetPasswordPage={token}"
+    reset_link = f"http://localhost:3000/reset-password?token={token}"
 
     return {
         'reset_link': reset_link,

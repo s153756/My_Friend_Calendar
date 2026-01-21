@@ -8,6 +8,7 @@ import { ChangePasswordModal } from "./components/ChangePasswordModal";
 import SignUpPage from "./pages/SignUpPage";
 import MainCalendarPage from "./pages/MainCalendarPage";
 import UserProfilePage from "./pages/UserProfilePage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import { Navigate, Outlet } from 'react-router-dom';
 import Toast from "./components/NotificationToast";
 
@@ -23,7 +24,7 @@ function AppLayout() {
   const { user, notifications, removeNotification} = useAuthStore();
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const location = useLocation();
-  const isAuthRoute = location.pathname === "/login" || location.pathname === "/sign_up";
+  const isAuthRoute = location.pathname === "/login" || location.pathname === "/sign_up" || location.pathname === "/reset-password";
   const mainClassName = isAuthRoute
     ? "flex-grow-1 d-flex align-items-center justify-content-center auth-page-bg px-3"
     : "flex-grow-1 p-3";
@@ -80,6 +81,7 @@ function AppLayout() {
           <Route path="/" element={<MainCalendarPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/sign_up" element={<SignUpPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/user-profile" element={<UserProfilePage />} />
           </Route>

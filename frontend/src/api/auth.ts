@@ -111,21 +111,20 @@ export async function registerUser(
   }
 }
 
-export async function changePassword(
+export async function resetPasswordWithToken(
   token: string,
-  newPassword: string,
-  confirmPassword: string
+  password: string
 ): Promise<void> {
   try {
     const response = await axios.post(
       `${API_BASE_URL}/api/auth/reset-password`,
-      { token, newPassword, confirmPassword },
+      { token, password },
       {
         headers: { "Content-Type": "application/json" },
       }
     );
 
-    if (response.status === 200) {
+    if (response.status === 201) {
       useAuthStore.getState().addNotification("Password changed successfully!", "success");
     } else {
       useAuthStore.getState().addNotification("Failed to change password.", "error");
@@ -135,6 +134,16 @@ export async function changePassword(
     useAuthStore.getState().addNotification("An error occurred while changing the password.", "error");
     throw error;
   }
+}
+
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string,
+  confirmPassword: string
+): Promise<void> {
+  // TODO: Implement change password for logged-in users
+  // This should call a different endpoint that verifies current password
+  throw new Error("Change password for logged-in users not yet implemented");
 }
 
 export async function requestPasswordReset(email: string): Promise<void> {
