@@ -10,7 +10,8 @@ import { useCalendarStore } from "../useCalendarStore";
 import { useAuthStore } from "../useAuthStore";
 import { useVisibleEvents } from "../hooks/useVisibleEvents";
 import type { CalendarEvent, CalendarEventInput } from "../types/calendar";
-import { createEvent, deleteEvent as deleteEventApi } from "../api/calendar";
+import { updateEventAPI, createEvent, deleteEvent as deleteEventApi } from "../api/calendar";
+
 
 moment.updateLocale(moment.locale(), { week: { dow: 1, doy: 4 } });
 const localizer = momentLocalizer(moment);
@@ -105,8 +106,19 @@ export default function MainCalendar() {
     const timestamp = new Date();
 
     if (modalMode === "edit" && selectedEventId) {
-      updateEvent(selectedEventId, { ...values, updatedAt: timestamp });
-      closeModal();
+      try {
+        const updatedEvent = await updateEventAPI(selectedEventId, values);
+        updateEvent(selectedEventId, { 
+          ...updatedEvent,
+          allDay: values.allDay,
+          repeatRule: values.repeatRule,
+          reminder: values.reminder,
+          updatedAt: timestamp 
+        });
+        closeModal();
+      } catch (error) {
+        console.error("Update failed:", error);
+      }
     } else {
       try {
         const newEvent = await createEvent({
@@ -133,9 +145,10 @@ export default function MainCalendar() {
 
         addEvent(fullEvent);
         closeModal();
-      } catch (error: any) {
+      } catch (error) {
         console.error("Failed to create event:", error);
-        alert(error.message || "Failed to create event. Please try again.");
+        const message = error instanceof Error ? error.message : "Failed to create event. Please try again.";
+        alert(message);
       }
     }
   };

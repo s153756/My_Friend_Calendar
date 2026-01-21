@@ -1,6 +1,12 @@
 import { useAuthStore } from '../useAuthStore';
-import apiClient, { handleApiError } from "./apiClient";
-import { CalendarUserEventListResponse, CalendarEvent } from '../types/calendar';
+import apiClient, { handleApiError } from './apiClient';
+
+import {
+  CalendarUserEventListResponse,
+  CalendarEvent,
+  BackendCalendarResponse,
+  CalendarEventInput,
+} from '../types/calendar';
 
 export async function deleteEvent(eventId: string): Promise<void> {
   try {
@@ -44,6 +50,58 @@ export async function getUserEventsList(): Promise<CalendarUserEventListResponse
   }
 }
 
+export async function updateEventAPI(eventId: string, data: CalendarEventInput): Promise<CalendarEvent> {
+  try {
+    const formatLocalISO = (date: Date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+      return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+    };
+
+    const payload: {
+      title: string;
+      start_time: string;
+      end_time: string;
+      description?: string;
+      location?: string;
+      color?: string;
+      status?: string;
+    } = {
+      title: data.title,
+      start_time: formatLocalISO(data.start),
+      end_time: formatLocalISO(data.end),
+    };
+
+    if (data.description) payload.description = data.description;
+    if (data.location) payload.location = data.location;
+    if (data.color) payload.color = data.color;
+    if (data.status) payload.status = data.status;
+
+    const response = await apiClient.patch(`/calendar/events/${eventId}`, payload);
+    useAuthStore.getState().addNotification("Event updated successfully!", "success");
+
+    return {
+      id: String(response.data.id),
+      title: response.data.title,
+      description: response.data.description,
+      location: response.data.location,
+      color: response.data.color,
+      status: response.data.status,
+      start: new Date(response.data.start_time),
+      end: new Date(response.data.end_time),
+      createdByEmail: response.data.owner?.email || null,
+      participants: response.data.participants?.map((p: any) => p.email) || [],
+    };
+  } catch (error) {
+    handleApiError(error);
+    throw new Error("Event update failed.");
+  }
+}
+
 export async function createEvent(eventData: {
   title: string;
   description?: string;
@@ -75,8 +133,10 @@ export async function createEvent(eventData: {
     };
 
     const response = await apiClient.post("/calendar/events/create", payload);
-    useAuthStore.getState().addNotification("Event created successfully!", "success");
-    
+    useAuthStore
+      .getState()
+      .addNotification("Event created successfully!", "success");
+
     return {
       id: String(response.data.id),
       title: response.data.title,
@@ -89,7 +149,7 @@ export async function createEvent(eventData: {
       createdByEmail: null,
       participants: [],
     };
-  } catch (error: any) {
+  } catch (error) {
     handleApiError(error);
     throw new Error("Event creation failed.");
   }
