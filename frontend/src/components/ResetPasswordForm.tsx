@@ -13,33 +13,31 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({ onCancel }) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string>('');
 
   useEffect(() => {
     const tokenFromUrl = searchParams.get('token') || searchParams.get('Password_ResetPasswordPage') || '';
     setToken(tokenFromUrl);
 
     if (!tokenFromUrl) {
-      setError('No reset token found in URL');
+      console.log('No reset token found in URL');
     }
   }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     
     if (!token) {
-      setError('Reset token is missing');
+      console.log('Reset token is missing');
       return;
     }
 
     if (!password || !confirmPassword) {
-      setError('Please fill in all fields');
+      console.log('Please fill in all fields');
       return;
     }
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      console.log('Passwords do not match');
       return;
     }
 
@@ -48,55 +46,66 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({ onCancel }) => {
       await resetPasswordWithToken(token, password);
       navigate('/login');
     } catch (error) {
-      console.error('Password reset failed:', error);
-      setError('Failed to reset password. Please try again.');
+      console.log('Error', error);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="reset-password-form">
-      <h3>Reset Your Password</h3>
-      {error && <div className="error-message">{error}</div>}
+    <div className="card shadow p-4" style={{ maxWidth: '420px', width: '100%' }}>
+      <div className="text-center mb-4">
+        <h2 className="fw-semibold">Reset Your Password</h2>
+        <p className="text-muted mb-0">Enter your new password</p>
+      </div>
       
-      <div className="form-group">
-        <label htmlFor="password">New Password</label>
-        <input
-          type="password"
-          id="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Enter new password"
-          required
-          disabled={isLoading || !token}
-        />
-      </div>
+      <form onSubmit={handleSubmit}>
+        <div className="mb-3">
+          <label htmlFor="password" className="form-label">New Password</label>
+          <input
+            type="password"
+            id="password"
+            className="form-control"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Enter new password"
+            required
+            disabled={isLoading || !token}
+          />
+        </div>
 
-      <div className="form-group">
-        <label htmlFor="confirmPassword">Confirm Password</label>
-        <input
-          type="password"
-          id="confirmPassword"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          placeholder="Confirm new password"
-          required
-          disabled={isLoading || !token}
-        />
-      </div>
+        <div className="mb-3">
+          <label htmlFor="confirmPassword" className="form-label">Confirm Password</label>
+          <input
+            type="password"
+            id="confirmPassword"
+            className="form-control"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="Confirm new password"
+            required
+            disabled={isLoading || !token}
+          />
+        </div>
 
-      <div className="form-actions">
-        <button type="submit" disabled={isLoading || !token || !password || !confirmPassword}>
+        <button type="submit" className="btn btn-primary w-100 mt-2" disabled={isLoading || !token || !password || !confirmPassword}>
           {isLoading ? 'Resetting...' : 'Reset Password'}
         </button>
-        {onCancel && (
-          <button type="button" onClick={onCancel} disabled={isLoading}>
+      </form>
+      
+      {onCancel && (
+        <div className="text-center mt-3">
+          <button
+            type="button"
+            className="btn btn-link"
+            onClick={onCancel}
+            disabled={isLoading}
+          >
             Cancel
           </button>
-        )}
-      </div>
-    </form>
+        </div>
+      )}
+    </div>
   );
 };
 

@@ -21,38 +21,51 @@ const SendEmailForm: React.FC<SendEmailFormProps> = ({ onCancel }) => {
       await requestPasswordReset(email);
       setEmail('');
     } catch (error) {
-      console.error('Password reset request failed:', error);
+      console.log('Error', error);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="send-email-form">
-      <h3>Reset Password</h3>
-      <div className="form-group">
-        <label htmlFor="email">Email Address</label>
-        <input
-          type="email"
-          id="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Enter your email"
-          required
-          disabled={isLoading}
-        />
+    <div>
+      <div className="text-center mb-4">
+        <h2 className="fw-semibold">Reset Password</h2>
+        <p className="text-muted mb-0">Enter your email to receive a reset link</p>
       </div>
-      <div className="form-actions">
-        <button type="submit" disabled={isLoading || !email}>
+      
+      <form onSubmit={handleSubmit}>
+        <div className="mb-3">
+          <label htmlFor="email" className="form-label">Email Address</label>
+          <input
+            type="email"
+            id="email"
+            className="form-control"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter your email"
+            required
+            disabled={isLoading}
+          />
+        </div>
+        <button type="submit" className="btn btn-primary w-100 mt-2" disabled={isLoading || !email}>
           {isLoading ? 'Sending...' : 'Send Reset Link'}
         </button>
-        {onCancel && (
-          <button type="button" onClick={onCancel} disabled={isLoading}>
-            Cancel
+      </form>
+      
+      {onCancel && (
+        <div className="text-center mt-3">
+          <button
+            type="button"
+            className="btn btn-link"
+            onClick={onCancel}
+            disabled={isLoading}
+          >
+            Back to Login
           </button>
-        )}
-      </div>
-    </form>
+        </div>
+      )}
+    </div>
   );
 };
 
