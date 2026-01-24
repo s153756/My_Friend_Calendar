@@ -63,13 +63,13 @@ function AppLayout() {
           {user && (
             <div className="d-flex align-items-center gap-3">
               <span className="text-muted small">{user.email}</span>
-              <button
+              {/* <button
                 type="button"
                 className="btn btn-outline-secondary btn-sm"
                 onClick={() => setIsPasswordModalOpen(true)}
               >
                 Change Password
-              </button>
+              </button> */}
               <LogoutButton />
             </div>
           )}
