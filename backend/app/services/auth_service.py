@@ -247,7 +247,7 @@ def generate_reset_password_token(email, ip_address, user_agent):
     :param email: The email of the user.
     :param ip_address: The IP address of the request.
     :param user_agent: The user agent of the request.
-    :return: The plain text token or an error message.
+    :return: The reset link or an error message.
     """
     normalized_email = (email or "").strip().lower()
     if not normalized_email:
@@ -274,22 +274,24 @@ def generate_reset_password_token(email, ip_address, user_agent):
     db.session.add(reset_token)
     db.session.commit()
 
+    reset_link = f"http://localhost:3000/reset-password?token={token}"
+
     return {
-        'reset_token': token,
+        'reset_link': reset_link,
         'user_id': user.id,
         'ip_address': ip_address,
         'user_agent': user_agent
     }
 
-def send_reset_password_email(email, reset_token):
+def send_reset_password_email(email, reset_link):
     """
     Send a password reset email to the user.
 
     :param email: The email of the user.
-    :param reset_token: The plain text reset token.
+    :param reset_link: The reset link containing the token.
     """
     subject = "Password Reset Request"
-    body = f"Use the following token to reset your password: {reset_token}"
+    body = f"Click the link below to reset your password:\n\n{reset_link}\n\nIf you did not request a password reset, please ignore this email."
 
     msg = Message(subject=subject, recipients=[email], body=body)
     mail.send(msg)
