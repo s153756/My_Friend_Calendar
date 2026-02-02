@@ -1,4 +1,6 @@
 # MyFriendCalendar.io
+## It was a group project. We worked on GitLab, but I moved the project to GitHub.
+
 ## Project Overview
 This repository contains two main parts:
 ```
